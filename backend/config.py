@@ -1,7 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
-    MATHPIX_APP_ID: str = ""
     MATHPIX_APP_KEY: str = ""
     ANTHROPIC_API_KEY: str = ""
     OCR_CONFIDENCE_THRESHOLD: float = 0.2

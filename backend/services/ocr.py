@@ -22,7 +22,6 @@ async def extract_text_from_image(image_bytes: bytes) -> dict:
     }
     
     headers = {
-        "app_id": settings.MATHPIX_APP_ID,
         "app_key": settings.MATHPIX_APP_KEY
     }
     

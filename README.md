@@ -99,11 +99,17 @@ The easiest way to run the entire application is using Docker:
    - Backend API: [http://localhost:8000](http://localhost:8000)
    - API Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
 
-For detailed Docker instructions, troubleshooting, and production deployment, see [DOCKER.md](DOCKER.md).
 
 ---
 
-## Installation & Setup
+## Local Development Setup
+
+### Prerequisites
+- Python 3.11+
+- Node.js 18+
+- `uv` package manager ([installation guide](https://github.com/astral-sh/uv))
+
+### Step-by-Step Setup
 
 1. **Clone the repository**
    ```bash
@@ -111,29 +117,46 @@ For detailed Docker instructions, troubleshooting, and production deployment, se
    cd al-assignment
    ```
 
-2. **Backend Setup**
-
-   This project uses `uv` for dependency management.
-
+2. **Configure environment variables**
    ```bash
-   # Install dependencies
-   uv sync
+   cp .env.example .env
+   # Edit .env and add your API keys (see Configuration section below)
+   ```
 
-   # Run the server
+3. **Backend Setup**
+
+   Install dependencies using `uv`:
+   ```bash
+   uv sync
+   ```
+
+   Initialize the database and load seed data:
+   ```bash
+   uv run python -m backend.init_db
+   ```
+
+   Start the backend server:
+   ```bash
    uv run uvicorn backend.main:app --reload
    ```
    
    The backend will start at `http://localhost:8000`.
+   - API Documentation: `http://localhost:8000/docs`
 
-3. **Frontend Setup**
+4. **Frontend Setup**
 
+   Open a new terminal window and navigate to the frontend directory:
    ```bash
    cd frontend
+   ```
 
-   # Install dependencies
+   Install dependencies:
+   ```bash
    npm install
+   ```
 
-   # Start the development server
+   Start the development server:
+   ```bash
    npm run dev
    ```
    
@@ -145,7 +168,6 @@ Create a `.env` file in the root directory with the following keys:
 
 ```ini
 # Mathpix OCR
-MATHPIX_APP_ID=your_app_id
 MATHPIX_APP_KEY=your_app_key
 
 # LLM Provider (Claude recommended)
