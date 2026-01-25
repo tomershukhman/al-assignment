@@ -60,6 +60,8 @@ export interface FeedbackStep {
     step: string;
     /** Evaluation of the step correctness */
     status: 'correct' | 'incorrect';
+    /** Optional specific comment on the step */
+    comment?: string;
 }
 
 /**

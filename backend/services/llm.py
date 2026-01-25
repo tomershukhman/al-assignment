@@ -29,7 +29,10 @@ Return a JSON object with:
 - is_relevant: boolean (true if the submission appears to be an attempt to solve the given problem, false if it is unrelated content like a grocery list, drawing, or different problem)
 - is_correct: boolean (false if is_relevant is false)
 - analysis: string (brief explanation of their method, addressing the student correctly as 'You'. If not relevant, explain why.)
-- feedback: list of steps, where each step has a description (addressing the student correctly as 'You') and a status (correct/incorrect)
+- feedback: list of steps, where each step has:
+    - step: description of the step (addressing the student correctly as 'You')
+    - status: 'correct' or 'incorrect'
+    - comment: optional string (brief specific comment explaining exactly what was wrong or right in this step, e.g. "Sign error here", "Good job isolating x").
 """
 
     client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
@@ -59,7 +62,8 @@ Return a JSON object with:
                                 "type": "object",
                                 "properties": {
                                     "step": {"type": "string"},
-                                    "status": {"type": "string", "enum": ["correct", "incorrect"]}
+                                    "status": {"type": "string", "enum": ["correct", "incorrect"]},
+                                    "comment": {"type": "string"}
                                 },
                                 "required": ["step", "status"],
                                 "additionalProperties": False

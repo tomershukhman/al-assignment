@@ -42,7 +42,14 @@ export const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({ feedback, ocrT
                             <h4>Your steps:</h4>
                             {feedback.feedback.map((item, index) => (
                                 <div key={index} className={`feedback-step ${item.status}`}>
-                                    <span className="feedback-step__text">{item.step}</span>
+                                    <div className="feedback-step__content">
+                                        <span className="feedback-step__text">{item.step}</span>
+                                        {item.comment && (
+                                            <div className="feedback-step__comment">
+                                                {item.comment}
+                                            </div>
+                                        )}
+                                    </div>
                                     <span className="feedback-step__icon">
                                         {item.status === 'correct' ? '✓' : '✗'}
                                     </span>
