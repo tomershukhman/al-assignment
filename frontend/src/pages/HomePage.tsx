@@ -99,6 +99,19 @@ export const HomePage: React.FC = () => {
         setError(null);
     };
 
+    const viewSubmission = (submission: Submission) => {
+        try {
+            const feedback = JSON.parse(submission.feedback_json);
+            setResult({
+                ocr_text: submission.ocr_text,
+                feedback: feedback
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (err) {
+            console.error('Failed to parse historical feedback', err);
+        }
+    };
+
     const selectedProblem = problems.find(p => p.id === selectedProblemId);
 
     return (
@@ -213,15 +226,19 @@ export const HomePage: React.FC = () => {
                         ) : (
                             <div className="history-list">
                                 {history.map((submission) => {
-                                    let feedback;
-                                    try {
-                                        feedback = JSON.parse(submission.feedback_json);
-                                    } catch {
-                                        feedback = { is_correct: submission.is_correct };
-                                    }
-
                                     return (
-                                        <div key={submission.id} className="history-item">
+                                        <div
+                                            key={submission.id}
+                                            className="history-item"
+                                            onClick={() => viewSubmission(submission)}
+                                            role="button"
+                                            tabIndex={0}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    viewSubmission(submission);
+                                                }
+                                            }}
+                                        >
                                             <div className="history-item__status">
                                                 {submission.is_correct ? (
                                                     <span className="badge badge-success">✓ Correct</span>

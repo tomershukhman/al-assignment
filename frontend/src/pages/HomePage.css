@@ -178,6 +178,7 @@
 }
 
 .history-item {
+    cursor: pointer;
     display: flex;
     gap: var(--space-lg);
     padding: var(--space-lg);

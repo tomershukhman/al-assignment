@@ -28,7 +28,10 @@ export const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({ feedback, ocrT
 
 
             <div className="feedback-display__feedback card">
-                <h3>Feedback</h3>
+                <h3>Analysis</h3>
+                <p className="feedback-display__analysis">{feedback.analysis}</p>
+
+                <h3>Detailed Steps</h3>
                 <div className="feedback-list">
                     <h4>Your steps:</h4>
                     {feedback.feedback.map((item, index) => (
