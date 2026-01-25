@@ -13,6 +13,7 @@ import os
 import uuid
 import json
 from pathlib import Path
+from .config import settings
 
 app = FastAPI(title="Math Solving Assistant API")
 
@@ -180,11 +181,13 @@ async def process_submission(
         logger.info(f"OCR extraction successful. Text: {extracted_text}")
         logger.info(f"OCR extraction successful. Confidence: {confidence}")
                 
-        if not extracted_text:
-             # If OCR fails to get text, we still might want to save the partial failure or just error out?
-             # DESIGN.md "Handle errors/low confidence (retry or fail fast)" -> "Fail fast" as per Section 5
-             # But let's follow the current logic which raises 400
-             raise HTTPException(status_code=400, detail="Could not extract text from image")
+        # Handle low confidence or empty text
+        if not extracted_text or confidence < settings.OCR_CONFIDENCE_THRESHOLD:
+             # DESIGN.md Section 5: "Return 400 Bad Request... Please upload a specific clear photo."
+             raise HTTPException(
+                 status_code=400, 
+                 detail="Could not read handwriting (low confidence). Please upload a clearer photo."
+             )
 
         # 3. LLM Analysis
         feedback = await analyze_submission(extracted_text, question, correct_answer)

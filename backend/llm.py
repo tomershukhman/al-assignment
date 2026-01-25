@@ -73,7 +73,7 @@ Return a JSON object with:
 
         # Extract text content from the response
         content_text = message.content[0].text
-        logger.debug(f"Raw structured response: {content_text}")
+        # logger.debug(f"Raw structured response: {content_text}")
         
         result = json.loads(content_text)
         logger.success("Successfully parsed LLM feedback")
