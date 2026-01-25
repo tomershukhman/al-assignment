@@ -1,6 +1,5 @@
 import uuid
 import json
-from pathlib import Path
 from fastapi import UploadFile, HTTPException
 from sqlmodel import Session, select
 from loguru import logger
@@ -43,12 +42,11 @@ async def process_new_submission(
 
     try:
         # 1. Save Image
-        uploads_dir = Path(__file__).parent.parent.parent / "uploads"
-        uploads_dir.mkdir(exist_ok=True)
+        settings.UPLOADS_DIR.mkdir(exist_ok=True)
         
         file_ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
         filename = f"{uuid.uuid4()}.{file_ext}"
-        file_path = uploads_dir / filename
+        file_path = settings.UPLOADS_DIR / filename
         
         content = await file.read()
         with open(file_path, "wb") as f:
@@ -72,7 +70,7 @@ async def process_new_submission(
         # 5. Save to DB
         submission = Submission(
             problem_id=problem_id,
-            image_path=f"/api/uploads/{filename}",
+            image_path=f"{settings.UPLOAD_URL_PREFIX}/{filename}",
             ocr_text=extracted_text,
             ocr_confidence=confidence,
             student_result="See Feedback",
@@ -87,7 +85,7 @@ async def process_new_submission(
         return {
             "ocr_text": extracted_text,
             "feedback": feedback,
-            "imagePath": f"/api/uploads/{filename}"
+            "imagePath": f"{settings.UPLOAD_URL_PREFIX}/{filename}"
         }
 
     except HTTPException as he:

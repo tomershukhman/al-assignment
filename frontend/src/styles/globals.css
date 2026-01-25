@@ -225,6 +225,12 @@ select {
     color: var(--color-error);
 }
 
+.badge-warning {
+    background: rgba(245, 158, 11, 0.2);
+    /* Semi-transparent warning color for bg */
+    color: var(--color-warning);
+}
+
 .loading {
     display: inline-block;
     width: 20px;

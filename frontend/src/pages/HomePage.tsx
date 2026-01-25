@@ -214,11 +214,23 @@ export const HomePage: React.FC = () => {
                                             }}
                                         >
                                             <div className="history-item__status">
-                                                {submission.is_correct ? (
-                                                    <span className="badge badge-success">✓ Correct</span>
-                                                ) : (
-                                                    <span className="badge badge-error">✗ Incorrect</span>
-                                                )}
+                                                {(() => {
+                                                    try {
+                                                        const feedback = JSON.parse(submission.feedback_json);
+                                                        // Check explicitly for false, as undefined (legacy) might mean relevant
+                                                        if (feedback.is_relevant === false) {
+                                                            return <span className="badge badge-warning">⚠️ Irrelevant</span>;
+                                                        }
+                                                    } catch (err) {
+                                                        // Ignore parse errors
+                                                    }
+
+                                                    return submission.is_correct ? (
+                                                        <span className="badge badge-success">✓ Correct</span>
+                                                    ) : (
+                                                        <span className="badge badge-error">✗ Incorrect</span>
+                                                    );
+                                                })()}
                                             </div>
                                             <div className="history-item__content">
                                                 <p className="history-item__problem">

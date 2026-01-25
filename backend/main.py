@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from .routers import topics, submissions
+from .config import settings
 
 app = FastAPI(title="Math Solving Assistant API")
 
@@ -16,9 +17,8 @@ app.add_middleware(
 )
 
 # Mount static files for uploaded images
-uploads_dir = Path(__file__).parent.parent / "uploads"
-uploads_dir.mkdir(exist_ok=True)
-app.mount("/api/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
+settings.UPLOADS_DIR.mkdir(exist_ok=True)
+app.mount(settings.UPLOAD_URL_PREFIX, StaticFiles(directory=str(settings.UPLOADS_DIR)), name="uploads")
 
 # Include Routers
 app.include_router(topics.router)
@@ -30,4 +30,4 @@ def read_root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host=settings.API_HOST, port=settings.API_PORT)
