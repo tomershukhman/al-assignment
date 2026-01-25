@@ -16,7 +16,9 @@ The system will follow a classic Client-Server architecture utilizing a REST API
     *   Can be easily migrated to PostgreSQL if needed.
 *   **External Services**:
     *   **Mathpix API**: For Optical Character Recognition (OCR) of handwritten math.
-    *   **LLM Provider**: **Claude 3.5 Sonnet** (or newer). specifically `claude-sonnet-4-20250514` as per guidelines.
+        *   **Endpoint**: `POST https://api.mathpix.com/v3/text`
+        *   **Docs**: https://docs.mathpix.com/
+    *   **LLM Provider**: **Claude 4 Sonnet**.
 
 ## 2. Data Model
 
@@ -71,7 +73,10 @@ RESTful endpoints adhering to OpenAPI standards.
         *   `problem_id`: String
     *   **Process**:
         1.  Save image to local disk.
-        2.  Call Mathpix API to extract LaTex/Text.
+        2.  **OCR Processing**:
+            *   Send image to Mathpix (`v3/text`) specifying formats (text, latex_simplified).
+            *   Handle errors/low confidence (retry or fail fast).
+            *   Extract `text` and `confidence` from response.
         3.  Call LLM API with Context (Problem, Correct Info, OCR Text).
         4.  Save Submission to DB.
     *   **Response**: `Submission` object with feedback.
