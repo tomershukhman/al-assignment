@@ -15,7 +15,8 @@ async def analyze_submission(ocr_text: str, question: str, correct_answer: str) 
     system_prompt = (
         "You are a helpful math tutor. You analyze student work steps, "
         "identify errors in reasoning, and provide structured feedback. "
-        "Your feedback should strictly follow a checklist format."
+        "Your feedback should be encouraging and address the student directly (e.g., 'You did this...'). "
+        "Do not refer to 'the student' in the third person."
     )
 
     user_message = f"""
@@ -26,8 +27,8 @@ The student's handwritten work was interpreted as:
 
 Return a JSON object with:
 - is_correct: boolean
-- analysis: string (brief explanation of their method)
-- feedback: list of steps, where each step has a description and a status (correct/incorrect)
+- analysis: string (brief explanation of their method, addressing the student correctly as 'You')
+- feedback: list of steps, where each step has a description (addressing the student correctly as 'You') and a status (correct/incorrect)
 """
 
     client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
