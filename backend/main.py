@@ -10,6 +10,8 @@ from .llm import analyze_submission
 from .database import get_session
 from .models import Problem, Topic, Submission
 import os
+import uuid
+import json
 from pathlib import Path
 
 app = FastAPI(title="Math Solving Assistant API")
@@ -158,21 +160,49 @@ async def process_submission(
         correct_answer = problem.correct_answer
     
     try:
-        # 1. Read and Process Image (OCR)
+        # 1. Save Image to Disk
+        # Generate unique filename
+        file_ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
+        filename = f"{uuid.uuid4()}.{file_ext}"
+        file_path = uploads_dir / filename
+        
+        # Save content
         content = await file.read()
+        with open(file_path, "wb") as f:
+            f.write(content)
+            
+        # 2. OCR Processing
+        # Reset file cursor if needed or just use content we already read
         ocr_result = await extract_text_from_image(content)
         
         extracted_text = ocr_result.get("text", "")
-        confidence = ocr_result.get("confidence", 0) # Mathpix might return this differently, checking docs or response is needed
+        confidence = ocr_result.get("confidence", 0.0)
         
         if not extracted_text:
+             # If OCR fails to get text, we still might want to save the partial failure or just error out?
+             # DESIGN.md "Handle errors/low confidence (retry or fail fast)" -> "Fail fast" as per Section 5
+             # But let's follow the current logic which raises 400
              raise HTTPException(status_code=400, detail="Could not extract text from image")
 
-        # 2. LLM Analysis
-        # Use provided context or fetched from DB
+        # 3. LLM Analysis
         feedback = await analyze_submission(extracted_text, question, correct_answer)
         
-        # 3. Return Logic (No saving for this specific pass as per request)
+        # 4. Save Submission to DB
+        submission = Submission(
+            problem_id=problem_id, # This is guaranteed to be set now (see logic above)
+            image_path=f"/uploads/{filename}",
+            ocr_text=extracted_text,
+            ocr_confidence=confidence,
+            student_result="See Feedback", # LLM prompt in DESIGN.md doesn't explicitly extract this, using placeholder
+            is_correct=feedback.get("is_correct", False),
+            feedback_json=json.dumps(feedback)
+        )
+        
+        session.add(submission)
+        session.commit()
+        session.refresh(submission)
+        
+        # Return result
         return {
             "ocr_text": extracted_text,
             "feedback": feedback
