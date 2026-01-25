@@ -44,13 +44,11 @@
     margin-bottom: var(--space-md);
 }
 
-.feedback-display__analysis,
 .feedback-display__feedback,
 .feedback-display__ocr {
     padding: var(--space-xl);
 }
 
-.feedback-display__analysis h3,
 .feedback-display__feedback h3,
 .feedback-display__ocr h3 {
     font-size: 1.25rem;
@@ -58,12 +56,7 @@
     color: var(--color-text);
 }
 
-.feedback-display__analysis p {
-    color: var(--color-text-secondary);
-    line-height: 1.8;
-    font-size: 1.0625rem;
-    white-space: pre-wrap;
-}
+
 
 .feedback-list h4 {
     margin-bottom: var(--space-md);

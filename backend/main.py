@@ -177,7 +177,9 @@ async def process_submission(
         
         extracted_text = ocr_result.get("text", "")
         confidence = ocr_result.get("confidence", 0.0)
-        
+        logger.info(f"OCR extraction successful. Text: {extracted_text}")
+        logger.info(f"OCR extraction successful. Confidence: {confidence}")
+                
         if not extracted_text:
              # If OCR fails to get text, we still might want to save the partial failure or just error out?
              # DESIGN.md "Handle errors/low confidence (retry or fail fast)" -> "Fail fast" as per Section 5

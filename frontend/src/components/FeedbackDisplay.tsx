@@ -25,10 +25,7 @@ export const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({ feedback, ocrT
                 </span>
             </div>
 
-            <div className="feedback-display__analysis card">
-                <h3>Analysis</h3>
-                <p>{feedback.analysis}</p>
-            </div>
+
 
             <div className="feedback-display__feedback card">
                 <h3>Feedback</h3>
