@@ -58,7 +58,8 @@
         {
           "id": "pct-001",
           "question": "What is 25% of 80?",
-          "correct_answer": "20"
+          "correct_answer": "20",
+          "img_path": "example-imgs/blurry.png"
         },
         {
           "id": "pct-002",

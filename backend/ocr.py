@@ -42,8 +42,6 @@ async def extract_text_from_image(image_bytes: bytes) -> dict:
             files=files,
             timeout=30.0
         )
-        
-    logger.info(f"Mathpix API response received. Status: {response.status_code}")
     
     try:
         response.raise_for_status()
@@ -52,5 +50,6 @@ async def extract_text_from_image(image_bytes: bytes) -> dict:
         raise e
         
     result = response.json()
-    logger.success("Successfully parsed Mathpix response")
+    logger.info(f"Mathpix API response confidence: {result.get('confidence', 'N/A')}")
+    logger.success(f"OCR extraction successful. Text: {result.get('text', '')[:100]}")
     return result
