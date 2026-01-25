@@ -2,102 +2,58 @@ import React, { useState, useEffect } from 'react';
 import { ImageUploader } from '../components/ImageUploader';
 import { FeedbackDisplay } from '../components/FeedbackDisplay';
 import { api } from '../services/api';
-import type { Topic, Problem, Submission, SubmissionResponse } from '../types';
+import { useTopics } from '../hooks/useTopics';
+import { useProblems } from '../hooks/useProblems';
+import { useSubmissionHistory } from '../hooks/useSubmissionHistory';
+import type { Submission, SubmissionResponse } from '../types';
 import './HomePage.css';
 
 export const HomePage: React.FC = () => {
-    const [topics, setTopics] = useState<Topic[]>([]);
-    const [problems, setProblems] = useState<Problem[]>([]);
+    const { topics, isLoading: isLoadingTopics, error: topicsError } = useTopics();
     const [selectedTopicId, setSelectedTopicId] = useState<string>('');
+    const { problems, isLoading: isLoadingProblems, error: problemsError } = useProblems(selectedTopicId);
+    const { history, isLoading: isLoadingHistory, error: historyError, refreshHistory } = useSubmissionHistory();
+
     const [selectedProblemId, setSelectedProblemId] = useState<string>('');
     const [isUploading, setIsUploading] = useState(false);
     const [result, setResult] = useState<SubmissionResponse | null>(null);
-    const [error, setError] = useState<string | null>(null);
-    const [isLoadingTopics, setIsLoadingTopics] = useState(true);
-    const [isLoadingProblems, setIsLoadingProblems] = useState(false);
-    const [history, setHistory] = useState<Submission[]>([]);
-    const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+    const [uploadError, setUploadError] = useState<string | null>(null);
 
-    // Load topics on mount
+    // Reset selected problem when topic changes
     useEffect(() => {
-        loadTopics();
-        loadHistory();
-    }, []);
-
-    // Load problems when topic changes
-    useEffect(() => {
-        if (selectedTopicId) {
-            loadProblems(selectedTopicId);
-        } else {
-            setProblems([]);
-            setSelectedProblemId('');
-        }
+        setSelectedProblemId('');
     }, [selectedTopicId]);
-
-    const loadTopics = async () => {
-        try {
-            setIsLoadingTopics(true);
-            const data = await api.getTopics();
-            setTopics(data);
-        } catch (err) {
-            setError('Failed to load topics. Please refresh the page.');
-            console.error(err);
-        } finally {
-            setIsLoadingTopics(false);
-        }
-    };
-
-    const loadProblems = async (topicId: string) => {
-        try {
-            setIsLoadingProblems(true);
-            const data = await api.getTopicProblems(topicId);
-            setProblems(data);
-        } catch (err) {
-            setError('Failed to load problems for this topic.');
-            console.error(err);
-        } finally {
-            setIsLoadingProblems(false);
-        }
-    };
-
-    const loadHistory = async () => {
-        try {
-            setIsLoadingHistory(true);
-            const data = await api.getSubmissions(10, 0);
-            setHistory(data);
-        } catch (err) {
-            console.error('Failed to load history:', err);
-        } finally {
-            setIsLoadingHistory(false);
-        }
-    };
 
     const handleUpload = async (file: File) => {
         if (!selectedProblemId) return;
 
         try {
             setIsUploading(true);
-            setError(null);
+            setUploadError(null);
             const response = await api.submitSolution(selectedProblemId, file);
             setResult(response);
             // Refresh history after submission
-            loadHistory();
+            refreshHistory();
         } catch (err: any) {
-            setError(err.message || 'Failed to process your solution. Please try again.');
+            setUploadError(err.message || 'Failed to process your solution. Please try again.');
             console.error(err);
         } finally {
             setIsUploading(false);
         }
     };
 
+    // Combine errors for display
+    // Note: handling errors individually might be better, but we'll stick to the existing slot for now
+    const displayError = uploadError || topicsError || problemsError || historyError;
+
     const handleResubmit = () => {
         setResult(null);
-        setError(null);
+        setUploadError(null);
     };
 
     const handleSelectNewProblem = () => {
         setResult(null);
-        setError(null);
+        setUploadError(null);
         setSelectedProblemId('');
     };
 
@@ -135,11 +91,11 @@ export const HomePage: React.FC = () => {
                     </p>
                 </header>
 
-                {error && (
+                {displayError && (
                     <div className="home-page__error card">
                         <span className="home-page__error-icon">⚠️</span>
-                        <p>{error}</p>
-                        <button className="btn btn-secondary" onClick={() => setError(null)}>
+                        <p>{displayError}</p>
+                        <button className="btn btn-secondary" onClick={() => setUploadError(null)}>
                             Dismiss
                         </button>
                     </div>
