@@ -10,47 +10,6 @@ A web application where students can upload photos of their handwritten math sol
 - **AI Feedback**: Get instant feedback on your reasoning process, not just correctness.
 - **Submission History**: Track previous attempts and feedback.
 
-## Changes from Original Design
-
-During implementation, several enhancements were made to improve the system beyond the original [DESIGN.md](DESIGN.md):
-
-### LLM Response Structure
-
-The original design specified a simple feedback structure:
-```json
-{
-  "result": boolean,
-  "steps": ["step1", "step2"],
-  "feedback": "text feedback"
-}
-```
-
-**Implementation uses an enhanced structure** with status tracking per step:
-```json
-{
-  "is_correct": boolean,
-  "analysis": "brief explanation of their method",
-  "feedback": [
-    {"step": "Identified LCD", "status": "correct"},
-    {"step": "multiplication error line 2", "status": "incorrect"}
-  ]
-}
-```
-
-**Benefits**: 
-- Better pedagogical feedback with step-by-step validation
-- UI can display visual indicators (✓/✗) for each step
-- More structured analysis for students to understand specific errors
-
-### Other Enhancements
-
-- **Structured Output API**: Uses Anthropic's beta structured outputs with JSON schema validation for reliable parsing
-- **Configurable Confidence Threshold**: OCR confidence threshold is configurable via environment variables
-- **Flexible Submission**: Supports both predefined problems and ad-hoc question/answer pairs
-- **Comprehensive Logging**: Added `loguru` logging throughout the backend for debugging
-- **Frontend Custom Hooks**: Implemented reusable hooks (`useTopics`, `useProblems`, `useSubmissionHistory`) for better code organization
-- **LaTeX Rendering**: Added support for rendering mathematical LaTeX expressions in feedback
-
 ## Tech Stack
 
 - **Frontend**: React, TypeScript, Vite
@@ -58,7 +17,7 @@ The original design specified a simple feedback structure:
 - **Database**: SQLite
 - **AI/ML**: 
   - [Mathpix OCR API](https://mathpix.com/) for handwriting recognition
-  - [Claude API](https://www.anthropic.com/) (or OpenAI) for reasoning evaluation
+  - [Claude API](https://www.anthropic.com/) for reasoning evaluation
 
 ## Prerequisites
 
@@ -74,7 +33,7 @@ The easiest way to run the entire application is using Docker:
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone git@github.com:tomershukhman/al-assignment.git
    cd al-assignment
    ```
 
@@ -172,8 +131,6 @@ MATHPIX_APP_KEY=your_app_key
 
 # LLM Provider (Claude recommended)
 ANTHROPIC_API_KEY=your_anthropic_key
-# OR
-OPENAI_API_KEY=your_openai_key
 ```
 
 ## Usage
@@ -183,3 +140,45 @@ OPENAI_API_KEY=your_openai_key
 3. Select a topic and a problem.
 4. Upload a photo of your handwritten solution (test images are available in `example-imgs/` or linked in guidelines).
 5. View the AI-generated feedback.
+
+## Changes from Original Design
+
+During implementation, several enhancements were made to improve the system beyond the original [DESIGN.md](DESIGN.md):
+
+### LLM Response Structure
+
+The original design specified a simple feedback structure:
+```json
+{
+  "result": boolean,
+  "steps": ["step1", "step2"],
+  "feedback": "text feedback"
+}
+```
+
+**Implementation uses an enhanced structure** with status tracking per step:
+```json
+{
+  "is_correct": boolean,
+  "analysis": "brief explanation of their method",
+  "feedback": [
+    {"step": "Identified LCD", "status": "correct"},
+    {"step": "multiplication error line 2", "status": "incorrect"}
+  ]
+}
+```
+
+**Benefits**: 
+- Better pedagogical feedback with step-by-step validation
+- UI can display visual indicators (✓/✗) for each step
+- More structured analysis for students to understand specific errors
+
+### Other Enhancements
+
+- **Structured Output API**: Uses Anthropic's beta structured outputs with JSON schema validation for reliable parsing
+- **Configurable Confidence Threshold**: OCR confidence threshold is configurable via environment variables
+- **Flexible Submission**: Supports both predefined problems and ad-hoc question/answer pairs
+- **Comprehensive Logging**: Added `loguru` logging throughout the backend for debugging
+- **Frontend Custom Hooks**: Implemented reusable hooks (`useTopics`, `useProblems`, `useSubmissionHistory`) for better code organization
+- **LaTeX Rendering**: Added support for rendering mathematical LaTeX expressions in feedback
+
