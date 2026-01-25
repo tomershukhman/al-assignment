@@ -1,6 +1,7 @@
 import json
 import httpx
 from .config import settings
+from loguru import logger
 
 MATHPIX_API_URL = "https://api.mathpix.com/v3/text"
 
@@ -9,6 +10,8 @@ async def extract_text_from_image(image_bytes: bytes) -> dict:
     Sends image bytes to Mathpix API and returns the result dictionary.
     Includes text, latex_styled, confidence, etc.
     """
+    logger.info(f"Starting OCR extraction. Image size: {len(image_bytes)} bytes")
+    
     options = {
         "math_inline_delimiters": ["$", "$"],
         "rm_spaces": True,
@@ -29,6 +32,8 @@ async def extract_text_from_image(image_bytes: bytes) -> dict:
     
     files = {"file": image_bytes}
     
+    logger.debug(f"Sending request to Mathpix API at {MATHPIX_API_URL}")
+    
     async with httpx.AsyncClient() as client:
         response = await client.post(
             MATHPIX_API_URL,
@@ -38,5 +43,14 @@ async def extract_text_from_image(image_bytes: bytes) -> dict:
             timeout=30.0
         )
         
-    response.raise_for_status()
-    return response.json()
+    logger.info(f"Mathpix API response received. Status: {response.status_code}")
+    
+    try:
+        response.raise_for_status()
+    except httpx.HTTPStatusError as e:
+        logger.error(f"Mathpix API failed with status {e.response.status_code}: {e.response.text}")
+        raise e
+        
+    result = response.json()
+    logger.success("Successfully parsed Mathpix response")
+    return result
