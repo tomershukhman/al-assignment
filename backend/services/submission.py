@@ -63,7 +63,7 @@ async def process_new_submission(
         if not extracted_text or confidence < settings.OCR_CONFIDENCE_THRESHOLD:
              raise HTTPException(
                  status_code=400, 
-                 detail="Could not read handwriting (low confidence). Please upload a clearer photo."
+                 detail="Could not read handwriting (low confidence). Please upload a new image."
              )
 
         # 4. LLM Analysis

@@ -31,6 +31,7 @@ export interface FeedbackStep {
 }
 
 export interface Feedback {
+    is_relevant?: boolean;
     is_correct: boolean;
     analysis: string;
     feedback: FeedbackStep[];

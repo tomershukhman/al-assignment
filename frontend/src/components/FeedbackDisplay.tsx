@@ -15,13 +15,17 @@ export const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({ feedback, ocrT
         <div className="feedback-display">
             <div className={`feedback-display__result card ${feedback.is_correct ? 'feedback-display__result--correct' : 'feedback-display__result--incorrect'}`}>
                 <div className="feedback-display__icon">
-                    {feedback.is_correct ? '✅' : '❌'}
+                    {feedback.is_relevant === false ? '⚠️' : (feedback.is_correct ? '✅' : '❌')}
                 </div>
                 <h2 className="feedback-display__title">
-                    {feedback.is_correct ? 'Great job!' : 'Not quite right'}
+                    {feedback.is_relevant === false
+                        ? 'Submission Not Relevant'
+                        : (feedback.is_correct ? 'Great job!' : 'Not quite right')}
                 </h2>
                 <span className={`badge ${feedback.is_correct ? 'badge-success' : 'badge-error'}`}>
-                    {feedback.is_correct ? 'Correct Answer' : 'Incorrect Answer'}
+                    {feedback.is_relevant === false
+                        ? 'Invalid Submission'
+                        : (feedback.is_correct ? 'Correct Answer' : 'Incorrect Answer')}
                 </span>
             </div>
 
@@ -31,18 +35,22 @@ export const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({ feedback, ocrT
                 <h3>Analysis</h3>
                 <p className="feedback-display__analysis">{feedback.analysis}</p>
 
-                <h3>Detailed Steps</h3>
-                <div className="feedback-list">
-                    <h4>Your steps:</h4>
-                    {feedback.feedback.map((item, index) => (
-                        <div key={index} className={`feedback-step ${item.status}`}>
-                            <span className="feedback-step__text">{item.step}</span>
-                            <span className="feedback-step__icon">
-                                {item.status === 'correct' ? '✓' : '✗'}
-                            </span>
+                {feedback.is_relevant !== false && (
+                    <>
+                        <h3>Detailed Steps</h3>
+                        <div className="feedback-list">
+                            <h4>Your steps:</h4>
+                            {feedback.feedback.map((item, index) => (
+                                <div key={index} className={`feedback-step ${item.status}`}>
+                                    <span className="feedback-step__text">{item.step}</span>
+                                    <span className="feedback-step__icon">
+                                        {item.status === 'correct' ? '✓' : '✗'}
+                                    </span>
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
+                    </>
+                )}
             </div>
 
             <div className="feedback-display__ocr card">

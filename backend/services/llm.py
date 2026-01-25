@@ -26,8 +26,9 @@ The student's handwritten work was interpreted as:
 "{ocr_text}"
 
 Return a JSON object with:
-- is_correct: boolean
-- analysis: string (brief explanation of their method, addressing the student correctly as 'You')
+- is_relevant: boolean (true if the submission appears to be an attempt to solve the given problem, false if it is unrelated content like a grocery list, drawing, or different problem)
+- is_correct: boolean (false if is_relevant is false)
+- analysis: string (brief explanation of their method, addressing the student correctly as 'You'. If not relevant, explain why.)
 - feedback: list of steps, where each step has a description (addressing the student correctly as 'You') and a status (correct/incorrect)
 """
 
@@ -49,6 +50,7 @@ Return a JSON object with:
                 "schema": {
                     "type": "object",
                     "properties": {
+                        "is_relevant": {"type": "boolean"},
                         "is_correct": {"type": "boolean"},
                         "analysis": {"type": "string"},
                         "feedback": {
@@ -64,7 +66,7 @@ Return a JSON object with:
                             }
                         }
                     },
-                    "required": ["is_correct", "analysis", "feedback"],
+                    "required": ["is_relevant", "is_correct", "analysis", "feedback"],
                     "additionalProperties": False
                 }
             }
@@ -87,6 +89,7 @@ Return a JSON object with:
             logger.debug(f"Raw response text: {content_text}")
             
         return {
+            "is_relevant": False,
             "is_correct": False,
             "analysis": "Error parsing AI response",
             "feedback": [
