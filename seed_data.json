@@ -9,12 +9,14 @@
         {
           "id": "frac-add-001",
           "question": "What is 1/4 + 1/2?",
-          "correct_answer": "3/4"
+          "correct_answer": "3/4",
+          "img_path": "example-imgs/wrong_common_error.png"
         },
         {
           "id": "frac-add-002",
           "question": "What is 2/3 + 3/4?",
-          "correct_answer": "17/12"
+          "correct_answer": "17/12",
+          "img_path": "example-imgs/correct_clean.png"
         },
         {
           "id": "frac-add-003",
@@ -32,7 +34,8 @@
         {
           "id": "lin-eq-001",
           "question": "Solve for x: 2x + 5 = 13",
-          "correct_answer": "x = 4"
+          "correct_answer": "x = 4",
+          "img_path": "example-imgs/correct_messy.png"
         },
         {
           "id": "lin-eq-002",
