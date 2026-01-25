@@ -25,6 +25,43 @@ A web application where students can upload photos of their handwritten math sol
 - Python (v3.11+)
 - `uv` package manager for Python (optional but recommended)
 
+
+
+## Docker Deployment (Recommended)
+
+The easiest way to run the entire application is using Docker:
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd al-assignment
+   ```
+
+2. **Configure environment variables**
+   ```bash
+   cp .env.example .env
+   # Edit .env and add your API keys
+   ```
+
+3. **Start the application**
+   ```bash
+   ./start-docker.sh
+   ```
+   
+   Or manually:
+   ```bash
+   docker-compose up --build
+   ```
+
+4. **Access the application**
+   - Frontend: [http://localhost:3000](http://localhost:3000)
+   - Backend API: [http://localhost:8000](http://localhost:8000)
+   - API Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+For detailed Docker instructions, troubleshooting, and production deployment, see [DOCKER.md](DOCKER.md).
+
+---
+
 ## Installation & Setup
 
 1. **Clone the repository**
