@@ -65,18 +65,61 @@ def get_submissions(
     offset: int = 0,
     session: Session = Depends(get_session)
 ):
-    """Get submission history, latest first"""
+    """Get submission history, latest first, with problem details"""
     statement = select(Submission).order_by(Submission.created_at.desc()).offset(offset).limit(limit)
     submissions = session.exec(statement).all()
-    return submissions
+    
+    # Build response with problem data
+    result = []
+    for submission in submissions:
+        problem = session.get(Problem, submission.problem_id)
+        result.append({
+            "id": submission.id,
+            "problem_id": submission.problem_id,
+            "image_path": submission.image_path,
+            "ocr_text": submission.ocr_text,
+            "ocr_confidence": submission.ocr_confidence,
+            "student_result": submission.student_result,
+            "is_correct": submission.is_correct,
+            "feedback_json": submission.feedback_json,
+            "created_at": submission.created_at.isoformat(),
+            "problem": {
+                "id": problem.id,
+                "topic_id": problem.topic_id,
+                "question": problem.question,
+                "correct_answer": problem.correct_answer
+            } if problem else None
+        })
+    
+    return result
 
 @app.get("/api/submissions/{submission_id}")
 def get_submission(submission_id: int, session: Session = Depends(get_session)):
-    """Get details of a specific submission"""
+    """Get details of a specific submission with problem details"""
     submission = session.get(Submission, submission_id)
     if not submission:
         raise HTTPException(status_code=404, detail=f"Submission '{submission_id}' not found")
-    return submission
+    
+    problem = session.get(Problem, submission.problem_id)
+    
+    return {
+        "id": submission.id,
+        "problem_id": submission.problem_id,
+        "image_path": submission.image_path,
+        "ocr_text": submission.ocr_text,
+        "ocr_confidence": submission.ocr_confidence,
+        "student_result": submission.student_result,
+        "is_correct": submission.is_correct,
+        "feedback_json": submission.feedback_json,
+        "created_at": submission.created_at.isoformat(),
+        "problem": {
+            "id": problem.id,
+            "topic_id": problem.topic_id,
+            "question": problem.question,
+            "correct_answer": problem.correct_answer
+        } if problem else None
+    }
+
 
 
 @app.post("/api/submissions")

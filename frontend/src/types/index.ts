@@ -22,6 +22,7 @@ export interface Submission {
     is_correct: boolean;
     feedback_json: string;
     created_at: string;
+    problem?: Problem;
 }
 
 export interface Feedback {

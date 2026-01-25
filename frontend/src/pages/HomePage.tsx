@@ -230,7 +230,9 @@ export const HomePage: React.FC = () => {
                                                 )}
                                             </div>
                                             <div className="history-item__content">
-                                                <p className="history-item__problem">Problem: {submission.problem_id}</p>
+                                                <p className="history-item__problem">
+                                                    {submission.problem?.question || submission.problem_id}
+                                                </p>
                                                 <p className="history-item__date">
                                                     {new Date(submission.created_at).toLocaleDateString()} at{' '}
                                                     {new Date(submission.created_at).toLocaleTimeString()}
