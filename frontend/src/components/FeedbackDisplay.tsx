@@ -2,6 +2,9 @@ import React from 'react';
 import type { Feedback } from '../types';
 import './FeedbackDisplay.css';
 
+import 'katex/dist/katex.min.css';
+import Latex from 'react-latex-next';
+
 interface FeedbackDisplayProps {
     feedback: Feedback;
     ocrText: string;
@@ -44,7 +47,9 @@ export const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({ feedback, ocrT
 
             <div className="feedback-display__ocr card">
                 <h3>What we extracted from your image</h3>
-                <pre className="feedback-display__ocr-text">{ocrText}</pre>
+                <div className="feedback-display__ocr-text">
+                    <Latex>{ocrText}</Latex>
+                </div>
             </div>
         </div>
     );
