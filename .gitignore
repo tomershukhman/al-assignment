@@ -46,3 +46,8 @@ docker-compose.override.yml
 
 #Example images
 example-imgs
+
+#Helper MD files
+DESIGN-INSTRACTIONS.MD
+
+MSFE
