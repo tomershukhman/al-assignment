@@ -86,7 +86,8 @@ async def process_new_submission(
         
         return {
             "ocr_text": extracted_text,
-            "feedback": feedback
+            "feedback": feedback,
+            "imagePath": f"/api/uploads/{filename}"
         }
 
     except HTTPException as he:
