@@ -29,7 +29,7 @@ app.add_middleware(
 # Mount static files for uploaded images
 uploads_dir = Path(__file__).parent.parent / "uploads"
 uploads_dir.mkdir(exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
+app.mount("/api/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
 
 @app.get("/")
 def read_root():
@@ -195,7 +195,7 @@ async def process_submission(
         # 4. Save Submission to DB
         submission = Submission(
             problem_id=problem_id, # This is guaranteed to be set now (see logic above)
-            image_path=f"/uploads/{filename}",
+            image_path=f"/api/uploads/{filename}",
             ocr_text=extracted_text,
             ocr_confidence=confidence,
             student_result="See Feedback", # LLM prompt in DESIGN.md doesn't explicitly extract this, using placeholder

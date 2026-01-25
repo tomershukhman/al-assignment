@@ -52,10 +52,6 @@ export const HomePage: React.FC = () => {
             setIsLoadingProblems(true);
             const data = await api.getTopicProblems(topicId);
             setProblems(data);
-            // Auto-select first problem
-            if (data.length > 0) {
-                setSelectedProblemId(data[0].id);
-            }
         } catch (err) {
             setError('Failed to load problems for this topic.');
             console.error(err);
@@ -94,17 +90,32 @@ export const HomePage: React.FC = () => {
         }
     };
 
-    const handleTryAnother = () => {
+    const handleResubmit = () => {
         setResult(null);
         setError(null);
     };
 
+    const handleSelectNewProblem = () => {
+        setResult(null);
+        setError(null);
+        setSelectedProblemId('');
+    };
+
     const viewSubmission = (submission: Submission) => {
         try {
+            if (submission.problem) {
+                // Set context so user can easily resubmit to the same problem
+                if (submission.problem.topic_id !== selectedTopicId) {
+                    setSelectedTopicId(submission.problem.topic_id);
+                }
+                setSelectedProblemId(submission.problem.id);
+            }
+
             const feedback = JSON.parse(submission.feedback_json);
             setResult({
                 ocr_text: submission.ocr_text,
-                feedback: feedback
+                feedback: feedback,
+                imagePath: submission.image_path
             });
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (err) {
@@ -204,10 +215,17 @@ export const HomePage: React.FC = () => {
 
                     {result && (
                         <>
-                            <FeedbackDisplay feedback={result.feedback} ocrText={result.ocr_text} />
-                            <div className="home-page__actions">
-                                <button className="btn btn-primary" onClick={handleTryAnother}>
-                                    Try Another Problem
+                            <FeedbackDisplay
+                                feedback={result.feedback}
+                                ocrText={result.ocr_text}
+                                imagePath={result.imagePath}
+                            />
+                            <div className="home-page__actions" style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                                <button className="btn btn-secondary" onClick={handleResubmit}>
+                                    Try Again
+                                </button>
+                                <button className="btn btn-primary" onClick={handleSelectNewProblem}>
+                                    Select Another Problem
                                 </button>
                             </div>
                         </>

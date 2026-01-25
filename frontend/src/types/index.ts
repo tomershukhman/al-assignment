@@ -39,4 +39,5 @@ export interface Feedback {
 export interface SubmissionResponse {
     ocr_text: string;
     feedback: Feedback;
+    imagePath?: string;
 }

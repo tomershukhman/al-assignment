@@ -8,9 +8,10 @@ import Latex from 'react-latex-next';
 interface FeedbackDisplayProps {
     feedback: Feedback;
     ocrText: string;
+    imagePath?: string;
 }
 
-export const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({ feedback, ocrText }) => {
+export const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({ feedback, ocrText, imagePath }) => {
     return (
         <div className="feedback-display">
             <div className={`feedback-display__result card ${feedback.is_correct ? 'feedback-display__result--correct' : 'feedback-display__result--incorrect'}`}>
@@ -51,6 +52,18 @@ export const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({ feedback, ocrT
                     <Latex>{ocrText}</Latex>
                 </div>
             </div>
+
+            {/* Display Uploaded Image if available */}
+            {imagePath && (
+                <div className="feedback-display__image card">
+                    <h3>Your Uploaded Solution</h3>
+                    <img
+                        src={imagePath}
+                        alt="Your solution"
+                        style={{ maxWidth: '100%', borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                    />
+                </div>
+            )}
         </div>
     );
 };
