@@ -29,7 +29,17 @@ export const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({ feedback, ocrT
 
             <div className="feedback-display__feedback card">
                 <h3>Feedback</h3>
-                <p>{feedback.feedback}</p>
+                <div className="feedback-list">
+                    <h4>Your steps:</h4>
+                    {feedback.feedback.map((item, index) => (
+                        <div key={index} className={`feedback-step ${item.status}`}>
+                            <span className="feedback-step__text">{item.step}</span>
+                            <span className="feedback-step__icon">
+                                {item.status === 'correct' ? '✓' : '✗'}
+                            </span>
+                        </div>
+                    ))}
+                </div>
             </div>
 
             <div className="feedback-display__ocr card">

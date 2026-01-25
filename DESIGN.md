@@ -91,7 +91,7 @@ RESTful endpoints adhering to OpenAPI standards.
 
 ## 4. LLM Strategy
 
-We will use **Claude Sonnet 4** (`claude-sonnet-4-20250514`) to act as a "Pedagogical Validator".
+We will use **Claude Sonnet 4.5** to act as a "Pedagogical Validator".
 
 ### Workflow
 1.  **Input Construction**:

@@ -25,10 +25,15 @@ export interface Submission {
     problem?: Problem;
 }
 
+export interface FeedbackStep {
+    step: string;
+    status: 'correct' | 'incorrect';
+}
+
 export interface Feedback {
     is_correct: boolean;
     analysis: string;
-    feedback: string;
+    feedback: FeedbackStep[];
 }
 
 export interface SubmissionResponse {
