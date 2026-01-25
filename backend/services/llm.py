@@ -1,6 +1,6 @@
 import json
 from anthropic import AsyncAnthropic
-from .config import settings
+from ..config import settings
 from loguru import logger
 
 CLAUDE_MODEL = "claude-sonnet-4-5"  # As requested by user

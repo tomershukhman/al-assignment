@@ -1,6 +1,6 @@
 import json
 import httpx
-from .config import settings
+from ..config import settings
 from loguru import logger
 
 MATHPIX_API_URL = "https://api.mathpix.com/v3/text"

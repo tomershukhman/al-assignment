@@ -1,19 +1,8 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Form, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-import uvicorn
-from loguru import logger
-from typing import Optional, List
-from sqlmodel import Session, select
-from .ocr import extract_text_from_image
-from .llm import analyze_submission
-from .database import get_session
-from .models import Problem, Topic, Submission
-import os
-import uuid
-import json
 from pathlib import Path
-from .config import settings
+from .routers import topics, submissions
 
 app = FastAPI(title="Math Solving Assistant API")
 
@@ -31,195 +20,13 @@ uploads_dir = Path(__file__).parent.parent / "uploads"
 uploads_dir.mkdir(exist_ok=True)
 app.mount("/api/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
 
+# Include Routers
+app.include_router(topics.router)
+app.include_router(submissions.router)
+
 @app.get("/")
 def read_root():
     return {"message": "Math Solving Assistant Backend"}
-
-@app.get("/api/topics")
-def get_topics(session: Session = Depends(get_session)):
-    """Get all available math topics"""
-    statement = select(Topic)
-    topics = session.exec(statement).all()
-    return topics
-
-@app.get("/api/topics/{topic_id}/problems")
-def get_topic_problems(topic_id: str, session: Session = Depends(get_session)):
-    """Get all problems for a specific topic"""
-    # Verify topic exists
-    topic = session.get(Topic, topic_id)
-    if not topic:
-        raise HTTPException(status_code=404, detail=f"Topic '{topic_id}' not found")
-    
-    statement = select(Problem).where(Problem.topic_id == topic_id)
-    problems = session.exec(statement).all()
-    return problems
-
-@app.get("/api/problems/{problem_id}")
-def get_problem(problem_id: str, session: Session = Depends(get_session)):
-    """Get details of a specific problem"""
-    problem = session.get(Problem, problem_id)
-    if not problem:
-        raise HTTPException(status_code=404, detail=f"Problem '{problem_id}' not found")
-    return problem
-
-@app.get("/api/submissions")
-def get_submissions(
-    limit: int = 50,
-    offset: int = 0,
-    session: Session = Depends(get_session)
-):
-    """Get submission history, latest first, with problem details"""
-    statement = select(Submission).order_by(Submission.created_at.desc()).offset(offset).limit(limit)
-    submissions = session.exec(statement).all()
-    
-    # Build response with problem data
-    result = []
-    for submission in submissions:
-        problem = session.get(Problem, submission.problem_id)
-        result.append({
-            "id": submission.id,
-            "problem_id": submission.problem_id,
-            "image_path": submission.image_path,
-            "ocr_text": submission.ocr_text,
-            "ocr_confidence": submission.ocr_confidence,
-            "student_result": submission.student_result,
-            "is_correct": submission.is_correct,
-            "feedback_json": submission.feedback_json,
-            "created_at": submission.created_at.isoformat(),
-            "problem": {
-                "id": problem.id,
-                "topic_id": problem.topic_id,
-                "question": problem.question,
-                "correct_answer": problem.correct_answer
-            } if problem else None
-        })
-    
-    return result
-
-@app.get("/api/submissions/{submission_id}")
-def get_submission(submission_id: int, session: Session = Depends(get_session)):
-    """Get details of a specific submission with problem details"""
-    submission = session.get(Submission, submission_id)
-    if not submission:
-        raise HTTPException(status_code=404, detail=f"Submission '{submission_id}' not found")
-    
-    problem = session.get(Problem, submission.problem_id)
-    
-    return {
-        "id": submission.id,
-        "problem_id": submission.problem_id,
-        "image_path": submission.image_path,
-        "ocr_text": submission.ocr_text,
-        "ocr_confidence": submission.ocr_confidence,
-        "student_result": submission.student_result,
-        "is_correct": submission.is_correct,
-        "feedback_json": submission.feedback_json,
-        "created_at": submission.created_at.isoformat(),
-        "problem": {
-            "id": problem.id,
-            "topic_id": problem.topic_id,
-            "question": problem.question,
-            "correct_answer": problem.correct_answer
-        } if problem else None
-    }
-
-
-
-@app.post("/api/submissions")
-async def process_submission(
-    file: UploadFile = File(...),
-    problem_id: Optional[str] = Form(None),
-    question: Optional[str] = Form(None),
-    correct_answer: Optional[str] = Form(None),
-    session: Session = Depends(get_session)
-):
-    """
-    Full processing pipeline:
-    1. Receive Image
-    2. OCR Processing
-    3. LLM Feedback
-    4. Return Feedback
-    """
-    if not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="File must be an image")
-    
-    # Validation: We need question context either from DB (via problem_id) or direct input
-    if not question or not correct_answer:
-        # Implement DB lookup using problem_id if context not provided
-        if not problem_id:
-             raise HTTPException(status_code=400, detail="Must provide question and correct_answer (or problem_id)")
-        
-        # Fetch problem from database
-        statement = select(Problem).where(Problem.id == problem_id)
-        problem = session.exec(statement).first()
-        
-        if not problem:
-            raise HTTPException(status_code=404, detail=f"Problem with id '{problem_id}' not found")
-        
-        # Use problem data from DB
-        question = problem.question
-        correct_answer = problem.correct_answer
-    
-    try:
-        # 1. Save Image to Disk
-        # Generate unique filename
-        file_ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
-        filename = f"{uuid.uuid4()}.{file_ext}"
-        file_path = uploads_dir / filename
-        
-        # Save content
-        content = await file.read()
-        with open(file_path, "wb") as f:
-            f.write(content)
-            
-        # 2. OCR Processing
-        # Reset file cursor if needed or just use content we already read
-        ocr_result = await extract_text_from_image(content)
-        
-        extracted_text = ocr_result.get("text", "")
-        confidence = ocr_result.get("confidence", 0.0)
-        logger.info(f"OCR extraction successful. Text: {extracted_text}")
-        logger.info(f"OCR extraction successful. Confidence: {confidence}")
-                
-        # Handle low confidence or empty text
-        if not extracted_text or confidence < settings.OCR_CONFIDENCE_THRESHOLD:
-             # DESIGN.md Section 5: "Return 400 Bad Request... Please upload a specific clear photo."
-             raise HTTPException(
-                 status_code=400, 
-                 detail="Could not read handwriting (low confidence). Please upload a clearer photo."
-             )
-
-        # 3. LLM Analysis
-        feedback = await analyze_submission(extracted_text, question, correct_answer)
-        
-        # 4. Save Submission to DB
-        submission = Submission(
-            problem_id=problem_id, # This is guaranteed to be set now (see logic above)
-            image_path=f"/api/uploads/{filename}",
-            ocr_text=extracted_text,
-            ocr_confidence=confidence,
-            student_result="See Feedback", # LLM prompt in DESIGN.md doesn't explicitly extract this, using placeholder
-            is_correct=feedback.get("is_correct", False),
-            feedback_json=json.dumps(feedback)
-        )
-        
-        session.add(submission)
-        session.commit()
-        session.refresh(submission)
-        
-        # Return result
-        return {
-            "ocr_text": extracted_text,
-            "feedback": feedback
-        }
-
-    except HTTPException as he:
-        raise he
-    except Exception as e:
-        logger.error(f"Processing failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
 
 if __name__ == "__main__":
     import uvicorn
