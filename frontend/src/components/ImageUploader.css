@@ -1,0 +1,116 @@
+.image-uploader {
+    margin: var(--space-xl) 0;
+}
+
+.image-uploader__input {
+    display: none;
+}
+
+.image-uploader__dropzone {
+    border: 2px dashed var(--color-border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-3xl);
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    background: var(--color-surface);
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.image-uploader__dropzone:hover {
+    border-color: var(--color-primary);
+    background: var(--color-surface-hover);
+}
+
+.image-uploader__dropzone--dragging {
+    border-color: var(--color-primary);
+    background: var(--color-surface-hover);
+    transform: scale(1.02);
+    box-shadow: var(--shadow-glow);
+}
+
+.image-uploader__dropzone--has-preview {
+    padding: var(--space-lg);
+}
+
+.image-uploader__placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.image-uploader__icon {
+    font-size: 4rem;
+    margin-bottom: var(--space-md);
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.image-uploader__placeholder h3 {
+    font-size: 1.5rem;
+    margin: 0;
+    color: var(--color-text);
+}
+
+.image-uploader__placeholder p {
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.image-uploader__formats {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    background: var(--color-bg-tertiary);
+    padding: var(--space-xs) var(--space-md);
+    border-radius: var(--radius-md);
+    margin-top: var(--space-sm);
+}
+
+.image-uploader__uploading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-lg);
+}
+
+.image-uploader__uploading p {
+    color: var(--color-text-secondary);
+    font-size: 1.125rem;
+}
+
+.image-uploader__preview {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.image-uploader__preview img {
+    max-width: 100%;
+    max-height: 500px;
+    object-fit: contain;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+
+.image-uploader__preview-text {
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    text-align: center;
+}
