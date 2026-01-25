@@ -18,7 +18,7 @@ The system will follow a classic Client-Server architecture utilizing a REST API
     *   **Mathpix API**: For Optical Character Recognition (OCR) of handwritten math.
         *   **Endpoint**: `POST https://api.mathpix.com/v3/text`
         *   **Docs**: https://docs.mathpix.com/
-    *   **LLM Provider**: **Claude 4 Sonnet**.
+    *   **LLM Provider**: **Claude 4.5 Sonnet**.
 
 ## 2. Data Model
 
