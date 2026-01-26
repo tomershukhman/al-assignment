@@ -38,34 +38,7 @@ echo "🎬 Starting services..."
 docker-compose up -d
 
 echo ""
-echo "⏳ Waiting for services to be healthy..."
-sleep 5
 
-# Wait for backend health check
-echo "   Checking backend..."
-timeout=60
-elapsed=0
-while [ $elapsed -lt $timeout ]; do
-    if docker-compose ps | grep -q "backend.*healthy"; then
-        echo "   ✅ Backend is ready!"
-        break
-    fi
-    sleep 2
-    elapsed=$((elapsed + 2))
-done
-
-# Wait for frontend health check
-echo "   Checking frontend..."
-timeout=30
-elapsed=0
-while [ $elapsed -lt $timeout ]; do
-    if docker-compose ps | grep -q "frontend.*healthy"; then
-        echo "   ✅ Frontend is ready!"
-        break
-    fi
-    sleep 2
-    elapsed=$((elapsed + 2))
-done
 
 echo ""
 echo "✨ Math Solving Assistant is now running!"
