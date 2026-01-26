@@ -92,4 +92,7 @@ async def process_new_submission(
         raise he
     except Exception as e:
         logger.error(f"Processing failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500, 
+            detail="An internal error occurred while processing your submission. Please try again later."
+        )
