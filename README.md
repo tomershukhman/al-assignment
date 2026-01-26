@@ -141,13 +141,17 @@ ANTHROPIC_API_KEY=your_anthropic_key
 4. Upload a photo of your handwritten solution (test images are available in `example-imgs/` or linked in guidelines).
 5. View the AI-generated feedback.
 
-## Changes from Original Design
+## Enhancements & Design Changes
 
-During implementation, several enhancements were made to improve the system beyond the original [DESIGN.md](DESIGN.md):
+We've implemented several features beyond the original [project guidelines](project-guidelines.md) to improve robustness and user experience:
 
-### LLM Response Structure
+### 1. Robustness & Relevance Checking
+The original requirements didn't specify how to handle uploaded images that aren't math solutions. We added an `is_relevant` check in the LLM analysis. If a user uploads an unrelated image (e.g., a grocery list), the system detects this and tags the submission as "Irrelevant" instead of attempting to grade it. This prevents confusing feedback on invalid inputs.
 
-The original design specified a simple feedback structure:
+### 2. Enhanced LLM Response Structure
+The original design specified a simple feedback structure. We enhanced this to track validation status per step:
+
+**Original Plan:**
 ```json
 {
   "result": boolean,
@@ -156,11 +160,12 @@ The original design specified a simple feedback structure:
 }
 ```
 
-**Implementation uses an enhanced structure** with status tracking per step:
+**Implementation:**
 ```json
 {
+  "is_relevant": boolean,     // NEW: Checks if submission is valid
   "is_correct": boolean,
-  "analysis": "brief explanation of their method",
+  "analysis": "brief explanation",
   "feedback": [
     {"step": "Identified LCD", "status": "correct"},
     {"step": "multiplication error line 2", "status": "incorrect"}
@@ -169,16 +174,10 @@ The original design specified a simple feedback structure:
 ```
 
 **Benefits**: 
-- Better pedagogical feedback with step-by-step validation
-- UI can display visual indicators (✓/✗) for each step
-- More structured analysis for students to understand specific errors
+- **Step-by-step Validation**: UI displays visual indicators (✓/✗) for each step.
+- **Structured Analysis**: Helps students pinpoint exactly where they went wrong.
 
-### Other Enhancements
-
-- **Structured Output API**: Uses Anthropic's beta structured outputs with JSON schema validation for reliable parsing
-- **Configurable Confidence Threshold**: OCR confidence threshold is configurable via environment variables
-- **Flexible Submission**: Supports both predefined problems and ad-hoc question/answer pairs
-- **Comprehensive Logging**: Added `loguru` logging throughout the backend for debugging
-- **Frontend Custom Hooks**: Implemented reusable hooks (`useTopics`, `useProblems`, `useSubmissionHistory`) for better code organization
-- **LaTeX Rendering**: Added support for rendering mathematical LaTeX expressions in feedback
+### 3. User Experience Improvements.
+- **Submission History**: Enhanced with "Irrelevant" tagging to clearly distinguish between incorrect answers and non-math submissions.
+- **Modern UI**: While "Functional over beautiful" was the baseline, we implemented a responsive interface using CSS variables and modern React patterns for a cleaner, professional look.
 
