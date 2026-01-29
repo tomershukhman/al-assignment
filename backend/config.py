@@ -4,7 +4,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     MATHPIX_APP_KEY: str = ""
     ANTHROPIC_API_KEY: str = ""
-    OCR_CONFIDENCE_THRESHOLD: float = 0.2
+    CLAUDE_MODEL: str = "claude-sonnet-4-5"
+    OCR_CONFIDENCE_THRESHOLD: float = 0.9
     
     # Server Settings
     API_HOST: str = "0.0.0.0"

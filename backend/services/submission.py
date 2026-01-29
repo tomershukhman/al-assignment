@@ -5,7 +5,6 @@ from sqlmodel import Session, select
 from loguru import logger
 from ..config import settings
 from ..models import Submission, Problem
-from .ocr import extract_text_from_image
 from .llm import analyze_submission
 
 async def process_new_submission(
@@ -52,20 +51,16 @@ async def process_new_submission(
         with open(file_path, "wb") as f:
             f.write(content)
             
-        # 2. OCR Processing
-        ocr_result = await extract_text_from_image(content)
-        extracted_text = ocr_result.get("text", "")
-        confidence = ocr_result.get("confidence", 0.0)
+        # 2. LLM Analysis (includes "OCR")
+        # We pass the image bytes directly to the LLM
+        feedback = await analyze_submission(content, file.content_type, question, correct_answer)
         
-        # 3. Confidence Check
-        if not extracted_text or confidence < settings.OCR_CONFIDENCE_THRESHOLD:
-             raise HTTPException(
-                 status_code=400, 
-                 detail="Could not read handwriting (low confidence). Please upload a new image."
-             )
-
-        # 4. LLM Analysis
-        feedback = await analyze_submission(extracted_text, question, correct_answer)
+        extracted_text = feedback.get("extracted_text", "")
+        # Confidence is not explicitly returned by the LLM in the same way as Mathpix,
+        # but we can assume high confidence if is_relevant is True.
+        # We'll set a placeholder or use a check from the LLM result if we added one.
+        # For now, let's assume if it returned a result, it works.
+        confidence = feedback.get("confidence", 0.0)
         
         # 5. Save to DB
         submission = Submission(
@@ -82,6 +77,12 @@ async def process_new_submission(
         session.commit()
         session.refresh(submission)
         
+        if confidence < settings.OCR_CONFIDENCE_THRESHOLD:
+            raise HTTPException(
+                status_code=400,
+                detail="OCR confidence is too low. Please try again."
+            )
+
         return {
             "ocr_text": extracted_text,
             "feedback": feedback,
