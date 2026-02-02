@@ -1,9 +1,12 @@
 .submission-result-container {
-    margin-top: 1rem;
-    padding: 0.5rem;
-    background-color: #f8f9fa;
+    margin-top: 0.75rem;
+    padding: 0;
+    /* Remove padding to let children control it */
+    background-color: transparent;
     border-radius: 8px;
-    border: 1px solid #e9ecef;
+    border: none;
+    /* Removed border */
+    width: 100%;
 }
 
 .submission-badge {
