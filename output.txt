@@ -1,0 +1,68 @@
+╭──────────────────────────────╮
+│ Chat API Scenario Simulation │
+│ 1. Agent starts              │
+│ 2. User sends problem        │
+│ 3. Agent extracts            │
+│ 4. User sends solution       │
+╰──────────────────────────────╯
+
+Step 0: Agent starts (Initial Greeting)
+
+>>> User: Hello
+
+<<< Agent:
+╭─────────────────────────────────────────────────── Response ───────────────────────────────────────────────────╮
+│ Hello! I'm your math tutor, and I'm here to help you work through any problems you're stuck on.                │
+│                                                                                                                │
+│ Feel free to upload an image of a math problem you'd like to work on together. We can take it step-by-step!    │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+Step 1: User sends problem
+
+>>> User: Help me with this problem
+📎 Attached: example-imgs/problems/test/problem.png
+
+<<< Agent:
+╭─────────────────────────────────────────────────── Response ───────────────────────────────────────────────────╮
+│ I'd be happy to help you with that!                                                                            │
+│                                                                                                                │
+│ You're looking to add two fractions: $\frac{2}{3} + \frac{3}{4}$.                                              │
+│                                                                                                                │
+│ To add fractions with different denominators (the bottom numbers), we first need to find a **common            │
+│ denominator**.                                                                                                 │
+│                                                                                                                │
+│ Do you know what the smallest number is that both 3 and 4 can divide into evenly?                              │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+🔍 Extracted Problem (LaTeX):
+Topic: Fractions
+╭─────────────────────────────────────────────── LaTeX Extraction ───────────────────────────────────────────────╮
+│ $\frac{2}{3} + \frac{3}{4}$                                                                                    │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+Step 3: User sends solution
+
+>>> User: Here is my solution
+📎 Attached: example-imgs/problems/test/correct_clean.png
+
+<<< Agent:
+╭─────────────────────────────────────────────────── Response ───────────────────────────────────────────────────╮
+│ Great job! You've solved this perfectly.                                                                       │
+│                                                                                                                │
+│ You correctly identified the least common denominator (LCD) as 12 and converted both fractions accurately.     │
+│ Adding the numerators while keeping the common denominator led you straight to the correct answer of           │
+│ $\frac{17}{12}$.                                                                                               │
+│                                                                                                                │
+│ Keep up the excellent work! Would you like to try another one, perhaps with a slightly different challenge?    │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+🔍 Extracted Problem (LaTeX):
+Topic: Adding Fractions
+╭─────────────────────────────────────────────── LaTeX Extraction ───────────────────────────────────────────────╮
+│ $\frac{2}{3} + \frac{3}{4}$                                                                                    │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+================================================================================
+╭─────────────────────────────────────╮
+│ ✅ Scenario completed successfully! │
+╰─────────────────────────────────────╯

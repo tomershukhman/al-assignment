@@ -1,0 +1,107 @@
+╭──────────────────────────────╮
+│ Chat API Scenario Simulation │
+│ 1. Agent starts              │
+│ 2. User sends problem        │
+│ 3. Agent extracts            │
+│ 4. User sends solution       │
+╰──────────────────────────────╯
+
+Step 0: Agent starts (Initial 
+Greeting)
+
+>>> User: Hello
+
+<<< Agent:
+╭──────────── Response ────────────╮
+│ Hello! I'm your math tutor, and  │
+│ I'm here to help you work        │
+│ through any problems you're      │
+│ stuck on.                        │
+│                                  │
+│ Feel free to upload an image of  │
+│ a math problem you'd like to     │
+│ work on together. We can take it │
+│ step-by-step!                    │
+╰──────────────────────────────────╯
+
+Step 1: User sends problem
+
+>>> User: Help me with this problem
+📎 Attached: 
+example-imgs/problems/test/problem.p
+ng
+
+<<< Agent:
+╭──────────── Response ────────────╮
+│ I'd be happy to help you with    │
+│ that!                            │
+│                                  │
+│ You're looking to add two        │
+│ fractions: $\frac{2}{3} +        │
+│ \frac{3}{4}$.                    │
+│                                  │
+│ To add fractions with different  │
+│ denominators (the bottom         │
+│ numbers), we first need to find  │
+│ a **common denominator**.        │
+│                                  │
+│ Do you know what the smallest    │
+│ number is that both 3 and 4 can  │
+│ divide into evenly?              │
+╰──────────────────────────────────╯
+
+🔍 Extracted Problem (LaTeX):
+Topic: Addition of Fractions
+╭──────── LaTeX Extraction ────────╮
+│ problem $\frac{2}{3} + \frac{3}{ │
+╰──────────────────────────────────╯
+
+Step 3: User sends solution
+
+>>> User: Here is my solution
+📎 Attached: 
+example-imgs/problems/test/correct_c
+lean.png
+
+<<< Agent:
+╭──────────── Response ────────────╮
+│ Great job! You nailed it.        │
+│                                  │
+│ Your steps were perfect:         │
+│ 1.  **Finding the LCD:** You     │
+│ correctly identified that 12 is  │
+│ the least common multiple of 3   │
+│ and 4.                           │
+│ 2.  **Converting:** You          │
+│ accurately changed both          │
+│ fractions to have that common    │
+│ denominator of 12 ($\frac{2}{3}$ │
+│ became $\frac{8}{12}$ and        │
+│ $\frac{3}{4}$ became             │
+│ $\frac{9}{12}$).                 │
+│ 3.  **Final Answer:** You added  │
+│ the numerators correctly to get  │
+│ $\frac{17}{12}$.                 │
+│                                  │
+│ Since the numerator is larger    │
+│ than the denominator, this is an │
+│ improper fraction. Sometimes     │
+│ teachers like to see the answer  │
+│ as a mixed number. Do you know   │
+│ how to convert $\frac{17}{12}$   │
+│ into a mixed number?             │
+╰──────────────────────────────────╯
+
+🔍 Extracted Problem (LaTeX):
+Topic: Addition of Fractions
+╭──────── LaTeX Extraction ────────╮
+│ problem $\frac{2}{3} + \frac{3}{ │
+╰──────────────────────────────────╯
+
+====================================
+====================================
+========
+╭──────────────────────────────────╮
+│ ✅ Scenario completed            │
+│ successfully!                    │
+╰──────────────────────────────────╯

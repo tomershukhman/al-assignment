@@ -16,6 +16,8 @@ dependencies = [
     "anthropic>=0.76.0",
     "pyrefly>=0.50.1",
     "google-genai>=0.3.0",
+    "langgraph>=1.0.6",
+    "langchain-google-genai>=2.0.8",
 ]
 
 [tool.pyrefly]

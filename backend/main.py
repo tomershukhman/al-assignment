@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
-from .routers import submissions, topics, problems
+from .routers import submissions, topics, problems, chat
 from .config import settings
 
 app = FastAPI(title="Math Assignment Assistant")
@@ -16,6 +16,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(chat.router)
 app.include_router(submissions.router)
 app.include_router(topics.router)
 app.include_router(problems.router)

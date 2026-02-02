@@ -56,7 +56,7 @@ async def analyze_submission(image_bytes: bytes, media_type: str, question: str,
         if response.parsed:
             result = response.parsed.model_dump()
             logger.success("Successfully parsed LLM feedback")
-            logger.info(f"Raw Gemini response: {result}")
+            # logger.info(f"Raw Gemini response: {result}")
             logger.info(f"text confidence: {result['confidence']}")
             logger.info(f"Extracted text length: {len(result.get('extracted_text', ''))}")
             return result
@@ -126,4 +126,41 @@ async def extract_problem_info(image_bytes: bytes, media_type: str) -> dict:
 
     except Exception as e:
         logger.error(f"LLM extraction call failed: {str(e)}")
+        raise e
+
+
+async def extract_text_from_image(image_bytes: bytes, media_type: str) -> str:
+    """
+    Extract raw text from an image without solving or analyzing.
+    Used for simple OCR when user wants to see what text is in an image.
+    """
+    logger.info(f"Starting text extraction on image of size {len(image_bytes)} bytes")
+
+    system_prompt = (
+        "You are a helpful OCR assistant. Extract all text from the provided image. "
+        "For any math expressions, use LaTeX formatting (e.g., $x^2$, $\\frac{a}{b}$)."
+    )
+
+    prompt = "Extract all text from this image."
+
+    try:
+        image_part = types.Part.from_bytes(
+            data=image_bytes,
+            mime_type=media_type
+        )
+
+        response = client.models.generate_content(
+            model=settings.GEMINI_MODEL,
+            contents=[prompt, image_part],
+            config=types.GenerateContentConfig(
+                system_instruction=system_prompt,
+            )
+        )
+        
+        extracted_text = response.text
+        logger.success(f"Successfully extracted text: {len(extracted_text)} characters")
+        return extracted_text
+
+    except Exception as e:
+        logger.error(f"Text extraction failed: {str(e)}")
         raise e
