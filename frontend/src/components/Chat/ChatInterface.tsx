@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { api } from '../../services/api';
 import type { ChatMessage, ToolResult } from '../../types';
 import { SubmissionResult } from './ToolOutputs/SubmissionResult';
+import { LatexRenderer } from '../LatexRenderer';
 import './ChatInterface.css';
 
 export const ChatInterface: React.FC = () => {
@@ -100,7 +101,7 @@ export const ChatInterface: React.FC = () => {
                             {msg.imageUrl && (
                                 <img src={msg.imageUrl} alt="Uploaded content" className="message-image" />
                             )}
-                            <div className="message-text">{msg.content}</div>
+                            <LatexRenderer text={msg.content} className="message-text" />
 
                             {msg.toolResults && msg.toolResults.map((toolResult, idx) => (
                                 <div key={idx}>
