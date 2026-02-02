@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List, Literal
 
 
 class ProblemInfo(BaseModel):
@@ -24,3 +24,24 @@ class SubmissionWithProblem(BaseModel):
     
     class Config:
         from_attributes = True
+
+
+class ProblemExtraction(BaseModel):
+    topic: str
+    question: str
+    correct_answer: str
+
+
+class FeedbackStep(BaseModel):
+    step: str
+    status: Literal["correct", "incorrect"]
+    comment: Optional[str] = None
+
+
+class SubmissionAnalysis(BaseModel):
+    is_relevant: bool
+    is_correct: bool
+    confidence: float
+    extracted_text: str
+    analysis: str
+    feedback: List[FeedbackStep]

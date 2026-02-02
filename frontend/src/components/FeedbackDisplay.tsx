@@ -33,7 +33,7 @@ export const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({ feedback, ocrT
 
             <div className="feedback-display__feedback card">
                 <h3>Analysis</h3>
-                <p className="feedback-display__analysis">{feedback.analysis}</p>
+                <LatexRenderer text={feedback.analysis} className="feedback-display__analysis" />
 
                 {feedback.is_relevant !== false && (
                     <>
@@ -43,11 +43,9 @@ export const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({ feedback, ocrT
                             {feedback.feedback.map((item, index) => (
                                 <div key={index} className={`feedback-step ${item.status}`}>
                                     <div className="feedback-step__content">
-                                        <span className="feedback-step__text">{item.step}</span>
+                                        <LatexRenderer text={item.step} className="feedback-step__text" />
                                         {item.comment && (
-                                            <div className="feedback-step__comment">
-                                                {item.comment}
-                                            </div>
+                                            <LatexRenderer text={item.comment} className="feedback-step__comment" />
                                         )}
                                     </div>
                                     <span className="feedback-step__icon">
@@ -63,7 +61,13 @@ export const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({ feedback, ocrT
             <div className="feedback-display__ocr card">
                 <h3>What we extracted from your image</h3>
                 <div className="feedback-display__ocr-text">
-                    <LatexRenderer text={ocrText} />
+                    {ocrText ? (
+                        <LatexRenderer text={ocrText} />
+                    ) : (
+                        <p style={{ fontStyle: 'italic', color: 'var(--color-text-muted)' }}>
+                            No text could be extracted from the image.
+                        </p>
+                    )}
                 </div>
             </div>
 

@@ -4,9 +4,18 @@ import './ImageUploader.css';
 interface ImageUploaderProps {
     onUpload: (file: File) => void;
     isUploading?: boolean;
+    title?: string;
+    description?: string;
+    uploadText?: string;
 }
 
-export const ImageUploader: React.FC<ImageUploaderProps> = ({ onUpload, isUploading = false }) => {
+export const ImageUploader: React.FC<ImageUploaderProps> = ({
+    onUpload,
+    isUploading = false,
+    title = "Upload Your Solution",
+    description = "Drag and drop your image here, or click to browse",
+    uploadText = "Processing your solution..."
+}) => {
     const [isDragging, setIsDragging] = useState(false);
     const [preview, setPreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -89,7 +98,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onUpload, isUpload
                 {isUploading ? (
                     <div className="image-uploader__uploading">
                         <div className="loading" style={{ width: '40px', height: '40px' }}></div>
-                        <p>Processing your solution...</p>
+                        <p>{uploadText}</p>
                     </div>
                 ) : preview ? (
                     <div className="image-uploader__preview">
@@ -99,8 +108,8 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onUpload, isUpload
                 ) : (
                     <div className="image-uploader__placeholder">
                         <div className="image-uploader__icon">📸</div>
-                        <h3>Upload Your Solution</h3>
-                        <p>Drag and drop your image here, or click to browse</p>
+                        <h3>{title}</h3>
+                        <p>{description}</p>
                         <span className="image-uploader__formats">Supports: JPEG, PNG</span>
                     </div>
                 )}

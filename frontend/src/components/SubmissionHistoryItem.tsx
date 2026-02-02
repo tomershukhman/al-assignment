@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Submission } from '../types';
+import { LatexRenderer } from './LatexRenderer';
 
 interface SubmissionHistoryItemProps {
     submission: Submission;
@@ -46,9 +47,9 @@ export const SubmissionHistoryItem: React.FC<SubmissionHistoryItemProps> = ({ su
                 {renderStatusBadge()}
             </div>
             <div className="history-item__content">
-                <p className="history-item__problem">
-                    {submission.problem?.question || submission.problem_id}
-                </p>
+                <div className="history-item__problem">
+                    <LatexRenderer text={submission.problem?.question || submission.problem_id} />
+                </div>
                 <p className="history-item__date">
                     {new Date(submission.created_at).toLocaleDateString()} at{' '}
                     {new Date(submission.created_at).toLocaleTimeString()}

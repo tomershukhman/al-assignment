@@ -57,6 +57,17 @@ export const api = {
         const response = await fetch(`${API_BASE}/submissions/${submissionId}`);
         return handleResponse<Submission>(response);
     },
+
+    async extractProblem(imageFile: File): Promise<Problem> {
+        const formData = new FormData();
+        formData.append('file', imageFile);
+
+        const response = await fetch(`${API_BASE}/problems/extract`, {
+            method: 'POST',
+            body: formData,
+        });
+        return handleResponse<Problem>(response);
+    },
 };
 
 export { ApiError };
