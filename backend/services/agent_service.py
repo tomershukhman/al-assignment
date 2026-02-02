@@ -91,6 +91,14 @@ async def process_chat_message(
         assistant_response = None
         tool_results = []
         
+        # Helper: Map tool_call_id to args from AIMessages
+        tool_args_map = {}
+        for msg in final_messages:
+            if isinstance(msg, AIMessage) and hasattr(msg, 'tool_calls'):
+                for tool_call in msg.tool_calls:
+                    if 'id' in tool_call:
+                        tool_args_map[tool_call['id']] = tool_call.get('args', {})
+
         # Iterate backwards to find the last AI message
         for msg in reversed(final_messages):
             if isinstance(msg, AIMessage) and msg.content:
@@ -105,8 +113,13 @@ async def process_chat_message(
         # We look for ToolMessages
         for msg in final_messages:
              if isinstance(msg, ToolMessage):
+                args = {}
+                if hasattr(msg, 'tool_call_id') and msg.tool_call_id:
+                    args = tool_args_map.get(msg.tool_call_id, {})
+                
                 tool_results.append({
                     "name": msg.name or "unknown",
+                    "args": args,
                     "result": msg.content
                 })
 

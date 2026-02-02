@@ -65,6 +65,11 @@ def send_message(message: str, image_path: str = None, conversation_history: lis
             for tool_result in result["tool_results"]:
                 tool_name = tool_result.get("name", "unknown")
                 tool_output = tool_result.get("result", {})
+                tool_args = tool_result.get("args", {})
+                
+                console.print(f"\n[bold magenta]🛠️  Tool Used: {tool_name}[/bold magenta]")
+                if tool_args:
+                     console.print(f"[dim]Args: {json.dumps(tool_args, indent=2)}[/dim]")
                 
                 # Robustly parse tool_output if it appears to be a JSON string
                 if isinstance(tool_output, str):
