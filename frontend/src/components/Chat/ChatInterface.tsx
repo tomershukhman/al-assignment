@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Paperclip, X, Calculator, Bot, User } from 'lucide-react';
 import { api } from '../../services/api';
-import type { ChatMessage } from '../../types';
+import type { ChatMessage, ChatSession } from '../../types';
 import { SubmissionResult } from './ToolOutputs/SubmissionResult';
 import { LatexRenderer } from '../LatexRenderer';
+import { ChatSidebar } from './ChatSidebar';
 import './ChatInterface.css';
 
 export const ChatInterface: React.FC = () => {
@@ -20,6 +21,10 @@ export const ChatInterface: React.FC = () => {
     const [threadId, setThreadId] = useState<string | undefined>(undefined);
     const [isRestoring, setIsRestoring] = useState(false);
 
+    // Session management state
+    const [sessions, setSessions] = useState<ChatSession[]>([]);
+    const [isLoadingSessions, setIsLoadingSessions] = useState(true);
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -33,35 +38,82 @@ export const ChatInterface: React.FC = () => {
         scrollToBottom();
     }, [messages, isLoading, isRestoring]);
 
-    // Restore session on mount
+    // Load chat sessions on mount
+    useEffect(() => {
+        loadChatSessions();
+    }, []);
+
+    // Restore active session on mount
     useEffect(() => {
         const storedThreadId = localStorage.getItem('chat_session_id');
         if (storedThreadId) {
             console.log('Restoring chat session:', storedThreadId);
             setThreadId(storedThreadId);
-            setIsRestoring(true);
-
-            api.getChatHistory(storedThreadId)
-                .then(history => {
-                    if (history && history.length > 0) {
-                        setMessages(history);
-                    } else {
-                        // If history is empty (expired backend memory?), keep the welcome message 
-                        // or maybe we should clear the invalid ID?
-                        // For now, let's keep the default welcome message if history is empty.
-                        // But if history IS returned, we overwrite the default welcome message.
-                    }
-                })
-                .catch(err => {
-                    console.error("Failed to restore history:", err);
-                    // On error (e.g. 404 or backend restart), maybe clear the ID?
-                    // localStorage.removeItem('chat_session_id');
-                })
-                .finally(() => {
-                    setIsRestoring(false);
-                });
+            loadChatHistory(storedThreadId);
         }
     }, []);
+
+    const loadChatSessions = async () => {
+        try {
+            setIsLoadingSessions(true);
+            const fetchedSessions = await api.getChatSessions();
+            setSessions(fetchedSessions);
+        } catch (error) {
+            console.error('Failed to load chat sessions:', error);
+        } finally {
+            setIsLoadingSessions(false);
+        }
+    };
+
+    const loadChatHistory = async (sessionId: string) => {
+        try {
+            setIsRestoring(true);
+            const history = await api.getChatHistory(sessionId);
+            if (history && history.length > 0) {
+                setMessages(history);
+            }
+        } catch (error) {
+            console.error('Failed to restore history:', error);
+        } finally {
+            setIsRestoring(false);
+        }
+    };
+
+    const handleNewChat = () => {
+        // Reset state for new chat
+        setMessages([{
+            id: 'init-1',
+            role: 'assistant',
+            content: "Hello! I'm your math tutor. You can upload a problem image to get started, or just ask me a math question!"
+        }]);
+        setThreadId(undefined);
+        setInputText('');
+        setSelectedImage(null);
+        localStorage.removeItem('chat_session_id');
+    };
+
+    const handleSessionSelect = async (sessionId: string) => {
+        if (sessionId === threadId) return; // Already selected
+
+        setThreadId(sessionId);
+        localStorage.setItem('chat_session_id', sessionId);
+        await loadChatHistory(sessionId);
+    };
+
+    const handleDeleteSession = async (sessionId: string) => {
+        try {
+            await api.deleteChatSession(sessionId);
+            // Remove from local state
+            setSessions(prev => prev.filter(s => s.id !== sessionId));
+
+            // If deleting active session, start new chat
+            if (sessionId === threadId) {
+                handleNewChat();
+            }
+        } catch (error) {
+            console.error('Failed to delete session:', error);
+        }
+    };
 
     // Handle initial image selection
     const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,6 +158,11 @@ export const ChatInterface: React.FC = () => {
             if (response.thread_id) {
                 setThreadId(response.thread_id);
                 localStorage.setItem('chat_session_id', response.thread_id);
+
+                // Reload sessions to get the newly created session
+                if (!threadId) {
+                    await loadChatSessions();
+                }
             }
 
             const assistantMsg: ChatMessage = {
@@ -137,117 +194,130 @@ export const ChatInterface: React.FC = () => {
     };
 
     return (
-        <div className="chat-container">
-            {/* Header */}
-            <header className="chat-header">
-                <div className="chat-header-icon">
-                    <Calculator size={24} />
-                </div>
-                <div className="chat-header-info">
-                    <h1>Math Tutor</h1>
-                    <p>Powered by AI</p>
-                </div>
-            </header>
+        <div className="chat-layout">
+            {/* Sidebar */}
+            <ChatSidebar
+                sessions={sessions}
+                activeSessionId={threadId}
+                onSessionSelect={handleSessionSelect}
+                onNewChat={handleNewChat}
+                onDeleteChat={handleDeleteSession}
+                isLoading={isLoadingSessions}
+            />
 
-            {/* Messages Area */}
-            <div className="message-list">
-                {messages.map((msg) => (
-                    <div key={msg.id} className={`message-wrapper ${msg.role}`}>
-                        <div className="message-avatar">
-                            {msg.role === 'user' ? <User size={18} /> : <Bot size={18} />}
-                        </div>
-                        <div className="message-bubble">
-                            {/* Uploaded Image Preview in Stream */}
-                            {msg.imageUrl && (
-                                <img
-                                    src={msg.imageUrl}
-                                    alt="Uploaded problem"
-                                    className="message-image"
-                                />
-                            )}
-
-                            {/* Text Content */}
-                            {msg.content && <LatexRenderer text={msg.content} />}
-
-                            {/* Tool Results (Grading Cards, etc.) */}
-                            {msg.toolResults && msg.toolResults.length > 0 && (
-                                <div className="tool-results">
-                                    {msg.toolResults.map((tool, idx) => (
-                                        tool.name === 'submit_solution' && (
-                                            <div key={idx} style={{ marginTop: '1rem' }}>
-                                                <SubmissionResult result={tool.result} variant="chat" />
-                                            </div>
-                                        )
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+            {/* Main Chat Area */}
+            <div className="chat-container">
+                {/* Header */}
+                <header className="chat-header">
+                    <div className="chat-header-icon">
+                        <Calculator size={24} />
                     </div>
-                ))}
-
-                {isLoading && (
-                    <div className="typing-indicator">
-                        <div className="typing-dot"></div>
-                        <div className="typing-dot"></div>
-                        <div className="typing-dot"></div>
+                    <div className="chat-header-info">
+                        <h1>Math Tutor</h1>
+                        <p>Powered by AI</p>
                     </div>
-                )}
+                </header>
 
-                <div ref={messagesEndRef} />
-            </div>
+                {/* Messages Area */}
+                <div className="message-list">
+                    {messages.map((msg) => (
+                        <div key={msg.id} className={`message-wrapper ${msg.role}`}>
+                            <div className="message-avatar">
+                                {msg.role === 'user' ? <User size={18} /> : <Bot size={18} />}
+                            </div>
+                            <div className="message-bubble">
+                                {/* Uploaded Image Preview in Stream */}
+                                {msg.imageUrl && (
+                                    <img
+                                        src={msg.imageUrl}
+                                        alt="Uploaded problem"
+                                        className="message-image"
+                                    />
+                                )}
 
-            {/* Input Area */}
-            <div className="input-area">
-                <input
-                    type="file"
-                    ref={fileInputRef}
-                    style={{ display: 'none' }}
-                    accept="image/*"
-                    onChange={handleImageSelect}
-                />
+                                {/* Text Content */}
+                                {msg.content && <LatexRenderer text={msg.content} />}
 
-                <button
-                    className={`attach-button ${selectedImage ? 'has-file' : ''}`}
-                    onClick={() => fileInputRef.current?.click()}
-                    title="Attach image"
-                >
-                    <Paperclip size={20} />
-                </button>
+                                {/* Tool Results (Grading Cards, etc.) */}
+                                {msg.toolResults && msg.toolResults.length > 0 && (
+                                    <div className="tool-results">
+                                        {msg.toolResults.map((tool, idx) => (
+                                            tool.name === 'submit_solution' && (
+                                                <div key={idx} style={{ marginTop: '1rem' }}>
+                                                    <SubmissionResult result={tool.result} variant="chat" />
+                                                </div>
+                                            )
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
 
-                <div className="input-wrapper">
-                    {selectedImage && (
-                        <div className="file-preview">
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <Paperclip size={14} />
-                                {selectedImage.name}
-                            </span>
-                            <button
-                                onClick={() => setSelectedImage(null)}
-                                style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}
-                            >
-                                <X size={14} color="#ef4444" />
-                            </button>
+                    {isLoading && (
+                        <div className="typing-indicator">
+                            <div className="typing-dot"></div>
+                            <div className="typing-dot"></div>
+                            <div className="typing-dot"></div>
                         </div>
                     )}
 
-                    <textarea
-                        ref={textareaRef}
-                        className="chat-input"
-                        placeholder="Type a message or paste a problem..."
-                        value={inputText}
-                        onChange={(e) => setInputText(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        rows={1}
-                    />
+                    <div ref={messagesEndRef} />
                 </div>
 
-                <button
-                    className="send-button"
-                    onClick={() => handleSendMessage()}
-                    disabled={!inputText.trim() && !selectedImage && !isLoading}
-                >
-                    <Send size={20} />
-                </button>
+                {/* Input Area */}
+                <div className="input-area">
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        style={{ display: 'none' }}
+                        accept="image/*"
+                        onChange={handleImageSelect}
+                    />
+
+                    <button
+                        className={`attach-button ${selectedImage ? 'has-file' : ''}`}
+                        onClick={() => fileInputRef.current?.click()}
+                        title="Attach image"
+                    >
+                        <Paperclip size={20} />
+                    </button>
+
+                    <div className="input-wrapper">
+                        {selectedImage && (
+                            <div className="file-preview">
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <Paperclip size={14} />
+                                    {selectedImage.name}
+                                </span>
+                                <button
+                                    onClick={() => setSelectedImage(null)}
+                                    style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}
+                                >
+                                    <X size={14} color="#ef4444" />
+                                </button>
+                            </div>
+                        )}
+
+                        <textarea
+                            ref={textareaRef}
+                            className="chat-input"
+                            placeholder="Type a message or paste a problem..."
+                            value={inputText}
+                            onChange={(e) => setInputText(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            rows={1}
+                        />
+                    </div>
+
+                    <button
+                        className="send-button"
+                        onClick={() => handleSendMessage()}
+                        disabled={!inputText.trim() && !selectedImage && !isLoading}
+                    >
+                        <Send size={20} />
+                    </button>
+                </div>
             </div>
         </div>
     );

@@ -1,4 +1,4 @@
-import type { Topic, Problem, Submission, SubmissionResponse, ChatResponse } from '../types';
+import type { Topic, Problem, Submission, SubmissionResponse, ChatResponse, ChatSession } from '../types';
 
 const API_BASE = '/api';
 
@@ -89,6 +89,44 @@ export const api = {
     async getChatHistory(threadId: string): Promise<any[]> {
         const response = await fetch(`${API_BASE}/chat/history/${threadId}`);
         return handleResponse<any[]>(response);
+    },
+
+    // Chat session management
+    async getChatSessions(): Promise<ChatSession[]> {
+        const response = await fetch(`${API_BASE}/chat/sessions`);
+        return handleResponse<ChatSession[]>(response);
+    },
+
+    async createChatSession(title?: string): Promise<ChatSession> {
+        const response = await fetch(`${API_BASE}/chat/sessions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ title }),
+        });
+        return handleResponse<ChatSession>(response);
+    },
+
+    async deleteChatSession(sessionId: string): Promise<void> {
+        const response = await fetch(`${API_BASE}/chat/sessions/${sessionId}`, {
+            method: 'DELETE',
+        });
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
+            throw new ApiError(response.status, error.detail || response.statusText);
+        }
+    },
+
+    async updateChatSessionTitle(sessionId: string, title: string): Promise<ChatSession> {
+        const response = await fetch(`${API_BASE}/chat/sessions/${sessionId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ title }),
+        });
+        return handleResponse<ChatSession>(response);
     },
 };
 

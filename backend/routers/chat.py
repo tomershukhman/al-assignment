@@ -2,15 +2,30 @@
 Chat router for conversational math tutoring with the LangGraph agent.
 """
 
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends
 from typing import Optional, List, Dict, Any
 import json
 from loguru import logger
+from datetime import datetime
+from sqlmodel import Session
+import uuid
 
 from ..services.agent_service import process_chat_message, format_conversation_for_storage, retrieve_chat_history
 from ..response_models import ChatResponse
+from ..database import get_session
+from ..models import ChatSession
 
 router = APIRouter(tags=["chat"])
+
+
+def generate_title_from_message(message: str) -> str:
+    """Generate a chat title from the first message."""
+    # Truncate and clean up the message for the title
+    max_length = 50
+    title = message.strip()
+    if len(title) > max_length:
+        title = title[:max_length].rsplit(' ', 1)[0] + '...'
+    return title if title else "New Chat"
 
 
 @router.post("/api/chat", response_model=ChatResponse)
@@ -20,7 +35,8 @@ async def chat(
     thread_id: Optional[str] = Form(None, description="Session ID for stateful conversation"),
     # conversation_history is deprecated but kept for backward compatibility/logging if needed, 
     # though we won't use it for agent state anymore.
-    conversation_history: Optional[str] = Form(None, description="Deprecated: History is now managed on server")
+    conversation_history: Optional[str] = Form(None, description="Deprecated: History is now managed on server"),
+    db_session: Session = Depends(get_session)
 ):
     """
     Send a message to the math tutoring agent.
@@ -68,6 +84,30 @@ async def chat(
         # Format conversation for response
         formatted_conversation = format_conversation_for_storage(result.get("conversation", []))
         new_thread_id = result.get("thread_id")
+        
+        # --- Session Management: Create or Update ChatSession ---
+        if new_thread_id:
+            existing_session = db_session.get(ChatSession, new_thread_id)
+            
+            if not existing_session:
+                # Create new session with auto-generated title
+                title = generate_title_from_message(message)
+                new_session = ChatSession(
+                    id=new_thread_id,
+                    title=title,
+                    created_at=datetime.utcnow(),
+                    updated_at=datetime.utcnow()
+                )
+                db_session.add(new_session)
+                logger.info(f"Created new chat session: {new_thread_id} - '{title}'")
+            else:
+                # Update existing session's updated_at timestamp
+                existing_session.updated_at = datetime.utcnow()
+                db_session.add(existing_session)
+                logger.debug(f"Updated chat session: {new_thread_id}")
+            
+            db_session.commit()
+        # --- End Session Management ---
         
         # --- FIX START: Handle Structured Content ---
         # The agent might return a list of content blocks (text + tool_use)

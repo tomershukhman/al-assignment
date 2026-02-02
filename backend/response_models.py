@@ -59,3 +59,24 @@ class ChatResponse(BaseModel):
     tool_results: List[Dict[str, Any]] = []
     conversation: List[Dict[str, Any]] = []
     thread_id: Optional[str] = None
+
+
+class ChatSessionResponse(BaseModel):
+    """Response model for chat session"""
+    id: str
+    title: str
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
+class CreateChatSessionRequest(BaseModel):
+    """Request to create a new chat session"""
+    title: Optional[str] = None
+
+
+class UpdateChatSessionRequest(BaseModel):
+    """Request to update a chat session"""
+    title: Optional[str] = None

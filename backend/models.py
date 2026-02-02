@@ -3,6 +3,14 @@ from typing import Optional, List
 from sqlmodel import Field, SQLModel, Relationship
 
 
+class ChatSession(SQLModel, table=True):
+    """Represents a chat conversation session."""
+    id: str = Field(primary_key=True)  # UUID, same as thread_id from LangGraph
+    title: str  # Auto-generated from first message or user-edited
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
 class Topic(SQLModel, table=True):
     id: str = Field(primary_key=True)
     name: str

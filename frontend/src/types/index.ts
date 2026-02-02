@@ -121,3 +121,13 @@ export interface ChatResponse {
     conversation: any[];
     thread_id?: string;
 }
+
+/**
+ * Represents a chat conversation session
+ */
+export interface ChatSession {
+    id: string;
+    title: string;
+    created_at: string;
+    updated_at: string;
+}
