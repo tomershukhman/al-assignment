@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Problem } from '../types';
+import { LatexRenderer } from './LatexRenderer';
 import './ProblemDisplay.css';
 
 interface ProblemDisplayProps {
@@ -15,7 +16,7 @@ export const ProblemDisplay: React.FC<ProblemDisplayProps> = ({ problem }) => {
             </div>
 
             <div className="problem-display__question">
-                {problem.question}
+                <LatexRenderer text={problem.question} />
             </div>
 
             <div className="problem-display__instructions">

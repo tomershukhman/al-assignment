@@ -20,7 +20,8 @@ async def analyze_submission(image_bytes: bytes, media_type: str, question: str,
         "1. Read the handwritten math and text from the image.\n"
         "2. Analyze the student's work steps to identify errors in reasoning.\n"
         "3. Provide structured feedback.\n"
-        "4. Assess your confidence in reading the handwriting.\n\n"
+        "4. Assess your confidence in reading the handwriting.\n"
+        "5. IMPORTANT: For any math expressions in the extracted text, use LaTeX formatting (e.g., $x^2$).\n\n"
         "Your feedback should be encouraging and address the student directly (e.g., 'You did this...'). "
         "Do not refer to 'the student' in the third person."
     )
@@ -55,6 +56,7 @@ async def analyze_submission(image_bytes: bytes, media_type: str, question: str,
         if response.parsed:
             result = response.parsed.model_dump()
             logger.success("Successfully parsed LLM feedback")
+            logger.info(f"Raw Gemini response: {result}")
             logger.info(f"text confidence: {result['confidence']}")
             logger.info(f"Extracted text length: {len(result.get('extracted_text', ''))}")
             return result
@@ -89,6 +91,7 @@ async def extract_problem_info(image_bytes: bytes, media_type: str) -> dict:
         "1. Read the handwritten or printed math problem from the image.\n"
         "2. Solve the problem to find the correct answer.\n"
         "3. Identify the math topic.\n"
+        "4. IMPORTANT: Return the question text using LaTeX for all math expressions (e.g., $3x^2 - 27 = 0$).\n"
     )
 
     prompt = "Extract the math problem from the image."
@@ -114,6 +117,7 @@ async def extract_problem_info(image_bytes: bytes, media_type: str) -> dict:
         if response.parsed:
             result = response.parsed.model_dump()
             logger.success(f"Successfully extracted problem info. Topic: {result.get('topic')}")
+            logger.info(f"Raw Gemini problem extraction response: {result}")
             logger.info(f"Extracted Question: {result.get('question')}")
             return result
         else:

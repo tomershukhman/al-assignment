@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Topic, Problem } from '../types';
+import { LatexRenderer } from './LatexRenderer';
 
 interface ProblemSelectorProps {
     topics: Topic[];
@@ -81,7 +82,7 @@ export const ProblemSelector: React.FC<ProblemSelectorProps> = ({
 
             {selectedProblem && (
                 <div className="problem-preview">
-                    <h3>Problem: {selectedProblem.question}</h3>
+                    <h3>Problem: <LatexRenderer text={selectedProblem.question} /></h3>
                     <p className="problem-instructions">
                         📝 Solve this problem on paper showing all your work, then upload a photo below
                     </p>
