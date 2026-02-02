@@ -7,23 +7,23 @@ export function useTopics() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const loadTopics = async () => {
-            try {
-                setIsLoading(true);
-                const data = await api.getTopics();
-                setTopics(data);
-                setError(null);
-            } catch (err) {
-                setError('Failed to load topics. Please refresh the page.');
-                console.error(err);
-            } finally {
-                setIsLoading(false);
-            }
-        };
+    const loadTopics = async () => {
+        try {
+            setIsLoading(true);
+            const data = await api.getTopics();
+            setTopics(data);
+            setError(null);
+        } catch (err) {
+            setError('Failed to load topics. Please refresh the page.');
+            console.error(err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
+    useEffect(() => {
         loadTopics();
     }, []);
 
-    return { topics, isLoading, error };
+    return { topics, isLoading, error, refreshTopics: loadTopics };
 }

@@ -5,6 +5,10 @@ class Settings(BaseSettings):
     MATHPIX_APP_KEY: str = ""
     ANTHROPIC_API_KEY: str = ""
     CLAUDE_MODEL: str = "claude-sonnet-4-5"
+    
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-3-flash-preview"
+    
     OCR_CONFIDENCE_THRESHOLD: float = 0.9
     
     # Server Settings

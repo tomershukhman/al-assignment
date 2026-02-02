@@ -3,21 +3,27 @@ import { ImageUploader } from '../components/ImageUploader';
 import { FeedbackDisplay } from '../components/FeedbackDisplay';
 import { ProblemSelector } from '../components/ProblemSelector';
 import { SubmissionHistoryList } from '../components/SubmissionHistoryList';
+import { LatexRenderer } from '../components/LatexRenderer';
 import { api } from '../services/api';
 import { useTopics } from '../hooks/useTopics';
 import { useProblems } from '../hooks/useProblems';
 import { useSubmissionHistory } from '../hooks/useSubmissionHistory';
-import type { Submission, SubmissionResponse } from '../types';
+import type { Submission, SubmissionResponse, Problem } from '../types';
 import './HomePage.css';
 
 export const HomePage: React.FC = () => {
-    const { topics, isLoading: isLoadingTopics, error: topicsError } = useTopics();
+    const { topics, isLoading: isLoadingTopics, error: topicsError, refreshTopics } = useTopics();
     const [selectedTopicId, setSelectedTopicId] = useState<string>('');
-    const { problems, isLoading: isLoadingProblems, error: problemsError } = useProblems(selectedTopicId);
+    const { problems, isLoading: isLoadingProblems, error: problemsError, refreshProblems } = useProblems(selectedTopicId);
     const { history, isLoading: isLoadingHistory, error: historyError, refreshHistory } = useSubmissionHistory();
 
+
     const [selectedProblemId, setSelectedProblemId] = useState<string>('');
+    // Store the just-extracted problem locally in case it hasn't propagated to the list yet
+    const [extractedProblem, setExtractedProblem] = useState<Problem | null>(null);
     const [isUploading, setIsUploading] = useState(false);
+    const [isExtracting, setIsExtracting] = useState(false); // For problem extraction
+    const [showTopicSelection, setShowTopicSelection] = useState(false);
     const [result, setResult] = useState<SubmissionResponse | null>(null);
     const [uploadError, setUploadError] = useState<string | null>(null);
 
@@ -25,12 +31,14 @@ export const HomePage: React.FC = () => {
     const handleTopicChange = (topicId: string) => {
         setSelectedTopicId(topicId);
         setSelectedProblemId('');
+        setExtractedProblem(null);
         setResult(null);
         setUploadError(null);
     };
 
     const handleProblemChange = (problemId: string) => {
         setSelectedProblemId(problemId);
+        setExtractedProblem(null);
         setResult(null);
         setUploadError(null);
     };
@@ -53,6 +61,39 @@ export const HomePage: React.FC = () => {
         }
     };
 
+    const handleProblemUpload = async (file: File) => {
+        try {
+            setIsExtracting(true);
+            setUploadError(null);
+            const problem = await api.extractProblem(file);
+
+            // Refresh topics to get any new topics
+            await refreshTopics();
+
+            if (selectedTopicId === problem.topic_id) {
+                // If staying on the same topic, we must manually refresh problems
+                await refreshProblems();
+            }
+
+            setSelectedTopicId(problem.topic_id);
+            setSelectedProblemId(problem.id);
+            setExtractedProblem(problem);
+
+            // Once extracted, we can switch to "Solving" mode? 
+            // The user flow is: Upload Problem -> (System sets topic/problem) -> User sees "Success" or moves to solution upload?
+            // Let's assume after upload, we just want to show the problem is selected and let them solve it.
+            // But now "Home" default is problem upload.
+            // If we have a selected problem, we should show the solution uploader.
+
+            setShowTopicSelection(false);
+        } catch (err: any) {
+            setUploadError(err.message || 'Failed to extract problem. Please try again.');
+            console.error(err);
+        } finally {
+            setIsExtracting(false);
+        }
+    };
+
     // Combine errors for display
     // Note: handling errors individually might be better, but we'll stick to the existing slot for now
     const displayError = uploadError || topicsError || problemsError || historyError;
@@ -66,6 +107,8 @@ export const HomePage: React.FC = () => {
         setResult(null);
         setUploadError(null);
         setSelectedProblemId('');
+        setExtractedProblem(null);
+        setShowTopicSelection(false);
     };
 
     const viewSubmission = (submission: Submission) => {
@@ -111,24 +154,10 @@ export const HomePage: React.FC = () => {
                 )}
 
                 <div className="home-page__main">
-                    {/* Selection Panel */}
-                    <ProblemSelector
-                        topics={topics}
-                        problems={problems}
-                        selectedTopicId={selectedTopicId}
-                        selectedProblemId={selectedProblemId}
-                        isLoadingTopics={isLoadingTopics}
-                        isLoadingProblems={isLoadingProblems}
-                        onSelectTopic={handleTopicChange}
-                        onSelectProblem={handleProblemChange}
-                    />
+                    {/* Main Content Area */}
 
-                    {/* Upload and Feedback Section */}
-                    {selectedProblemId && !result && (
-                        <ImageUploader onUpload={handleUpload} isUploading={isUploading} />
-                    )}
-
-                    {result && (
+                    {/* 1. If we have a result (Result Mode) */}
+                    {result ? (
                         <>
                             <FeedbackDisplay
                                 feedback={result.feedback}
@@ -140,10 +169,81 @@ export const HomePage: React.FC = () => {
                                     Try Again
                                 </button>
                                 <button className="btn btn-primary" onClick={handleSelectNewProblem}>
-                                    Select Another Problem
+                                    Upload New Problem
                                 </button>
                             </div>
                         </>
+                    ) : (
+                        /* 2. If we have a selected problem (Solution Upload Mode) */
+                        selectedProblemId ? (
+                            <div className="card">
+                                <h2>Upload Your Solution</h2>
+
+                                {/* Display Selected Problem Details */}
+                                {/* We check both the list and the locally extracted problem to ensure immediate display */}
+                                {(() => {
+                                    const displayProblem = problems.find(p => p.id === selectedProblemId) ||
+                                        (extractedProblem?.id === selectedProblemId ? extractedProblem : undefined);
+
+                                    return displayProblem ? (
+                                        <div style={{ margin: '1rem 0', padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '8px', color: '#333' }}>
+                                            <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: '#333' }}>Problem:</h3>
+                                            <LatexRenderer
+                                                text={displayProblem.question || ''}
+                                            />
+                                        </div>
+                                    ) : null;
+                                })()}
+
+                                <p>Great! Now upload your handwritten solution to the selected problem.</p>
+                                <ImageUploader onUpload={handleUpload} isUploading={isUploading} />
+                                <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+                                    <button className="btn btn-secondary" onClick={() => setSelectedProblemId('')}>
+                                        Cancel / Select Different Problem
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            /* 3. Default: Problem Upload/Selection Mode */
+                            !showTopicSelection ? (
+                                <div className="card">
+                                    <h2>Start by Uploading a Problem</h2>
+                                    <p>Take a picture of a math problem. We'll identify the topic and question for you.</p>
+                                    <ImageUploader
+                                        onUpload={handleProblemUpload}
+                                        isUploading={isExtracting}
+                                        title="Upload Problem Image"
+                                        description="Drag and drop the problem image here"
+                                        uploadText="Extracting problem info..."
+                                    />
+
+                                    <div style={{ textAlign: 'center', marginTop: '1rem', borderTop: '1px solid #eee', paddingTop: '1rem' }}>
+                                        <p style={{ fontSize: '0.9rem', color: '#666' }}>or select from existing problems</p>
+                                        <button className="btn btn-secondary" onClick={() => setShowTopicSelection(true)}>
+                                            Browse Existing Problems
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <div style={{ marginBottom: '1rem' }}>
+                                        <button className="btn btn-secondary" onClick={() => setShowTopicSelection(false)}>
+                                            ← Back to Problem Upload
+                                        </button>
+                                    </div>
+                                    <ProblemSelector
+                                        topics={topics}
+                                        problems={problems}
+                                        selectedTopicId={selectedTopicId}
+                                        selectedProblemId={selectedProblemId}
+                                        isLoadingTopics={isLoadingTopics}
+                                        isLoadingProblems={isLoadingProblems}
+                                        onSelectTopic={handleTopicChange}
+                                        onSelectProblem={handleProblemChange}
+                                    />
+                                </>
+                            )
+                        )
                     )}
 
                     {/* History Section */}

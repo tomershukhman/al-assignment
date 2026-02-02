@@ -7,28 +7,28 @@ export function useProblems(topicId: string) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const loadProblems = async () => {
+        if (!topicId) {
+            setProblems([]);
+            return;
+        }
+
+        try {
+            setIsLoading(true);
+            const data = await api.getTopicProblems(topicId);
+            setProblems(data);
+            setError(null);
+        } catch (err) {
+            setError('Failed to load problems for this topic.');
+            console.error(err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const loadProblems = async () => {
-            if (!topicId) {
-                setProblems([]);
-                return;
-            }
-
-            try {
-                setIsLoading(true);
-                const data = await api.getTopicProblems(topicId);
-                setProblems(data);
-                setError(null);
-            } catch (err) {
-                setError('Failed to load problems for this topic.');
-                console.error(err);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
         loadProblems();
     }, [topicId]);
 
-    return { problems, isLoading, error };
+    return { problems, isLoading, error, refreshProblems: loadProblems };
 }

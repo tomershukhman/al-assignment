@@ -63,7 +63,13 @@ export const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({ feedback, ocrT
             <div className="feedback-display__ocr card">
                 <h3>What we extracted from your image</h3>
                 <div className="feedback-display__ocr-text">
-                    <LatexRenderer text={ocrText} />
+                    {ocrText ? (
+                        <LatexRenderer text={ocrText} />
+                    ) : (
+                        <p style={{ fontStyle: 'italic', color: 'var(--color-text-muted)' }}>
+                            No text could be extracted from the image.
+                        </p>
+                    )}
                 </div>
             </div>
 
