@@ -5,6 +5,7 @@ Handles file persistence and passes 'current_image_path' to the agent state.
 
 from typing import List, Dict, Any, Optional
 from loguru import logger
+import json
 import base64
 import tempfile
 import os
@@ -117,10 +118,18 @@ async def process_chat_message(
                 if hasattr(msg, 'tool_call_id') and msg.tool_call_id:
                     args = tool_args_map.get(msg.tool_call_id, {})
                 
+                result_content = msg.content
+                # Try to parse JSON content if it's a string
+                if isinstance(result_content, str):
+                    try:
+                        result_content = json.loads(result_content)
+                    except json.JSONDecodeError:
+                        pass  # Keep as string if not valid JSON
+
                 tool_results.append({
                     "name": msg.name or "unknown",
                     "args": args,
-                    "result": msg.content
+                    "result": result_content
                 })
 
         logger.success(f"Agent responded. Tool results: {len(tool_results)}")

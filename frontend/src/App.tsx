@@ -1,8 +1,8 @@
-import { HomePage } from './pages/HomePage';
+import { ChatInterface } from './components/Chat/ChatInterface';
 import './styles/globals.css';
 
 function App() {
-  return <HomePage />;
+  return <ChatInterface />;
 }
 
 export default App;

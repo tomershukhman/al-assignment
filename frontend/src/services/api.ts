@@ -1,4 +1,4 @@
-import type { Topic, Problem, Submission, SubmissionResponse } from '../types';
+import type { Topic, Problem, Submission, SubmissionResponse, ChatResponse } from '../types';
 
 const API_BASE = '/api';
 
@@ -67,6 +67,23 @@ export const api = {
             body: formData,
         });
         return handleResponse<Problem>(response);
+    },
+
+    async sendChatMessage(message: string, image?: File, threadId?: string): Promise<ChatResponse> {
+        const formData = new FormData();
+        formData.append('message', message);
+        if (image) {
+            formData.append('image', image);
+        }
+        if (threadId) {
+            formData.append('thread_id', threadId);
+        }
+
+        const response = await fetch(`${API_BASE}/chat`, {
+            method: 'POST',
+            body: formData,
+        });
+        return handleResponse<ChatResponse>(response);
     },
 };
 

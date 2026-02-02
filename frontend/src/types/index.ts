@@ -89,3 +89,35 @@ export interface SubmissionResponse {
     /** Path to the uploaded image */
     imagePath?: string;
 }
+
+/**
+ * Represents a result from a tool execution (e.g. submission analysis)
+ */
+export interface ToolResult {
+    name: string;
+    args: Record<string, any>;
+    result: any; // Can be SubmissionAnalysis JSON or string
+}
+
+/**
+ * Represents a chat message in the UI
+ */
+export interface ChatMessage {
+    id: string;
+    role: 'user' | 'assistant' | 'tool';
+    content: string;
+    image?: File; // Local file for preview
+    imageUrl?: string; // URL for display
+    toolResults?: ToolResult[]; // Tool outputs attached to this message
+    isThinking?: boolean; // For loading state
+}
+
+/**
+ * Response from the backend Chat API
+ */
+export interface ChatResponse {
+    response: string;
+    tool_results: ToolResult[];
+    conversation: any[];
+    thread_id?: string;
+}
