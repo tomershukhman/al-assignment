@@ -85,6 +85,11 @@ export const api = {
         });
         return handleResponse<ChatResponse>(response);
     },
+
+    async getChatHistory(threadId: string): Promise<any[]> {
+        const response = await fetch(`${API_BASE}/chat/history/${threadId}`);
+        return handleResponse<any[]>(response);
+    },
 };
 
 export { ApiError };

@@ -18,6 +18,7 @@ export const ChatInterface: React.FC = () => {
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [threadId, setThreadId] = useState<string | undefined>(undefined);
+    const [isRestoring, setIsRestoring] = useState(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -30,7 +31,37 @@ export const ChatInterface: React.FC = () => {
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages, isLoading]);
+    }, [messages, isLoading, isRestoring]);
+
+    // Restore session on mount
+    useEffect(() => {
+        const storedThreadId = localStorage.getItem('chat_session_id');
+        if (storedThreadId) {
+            console.log('Restoring chat session:', storedThreadId);
+            setThreadId(storedThreadId);
+            setIsRestoring(true);
+
+            api.getChatHistory(storedThreadId)
+                .then(history => {
+                    if (history && history.length > 0) {
+                        setMessages(history);
+                    } else {
+                        // If history is empty (expired backend memory?), keep the welcome message 
+                        // or maybe we should clear the invalid ID?
+                        // For now, let's keep the default welcome message if history is empty.
+                        // But if history IS returned, we overwrite the default welcome message.
+                    }
+                })
+                .catch(err => {
+                    console.error("Failed to restore history:", err);
+                    // On error (e.g. 404 or backend restart), maybe clear the ID?
+                    // localStorage.removeItem('chat_session_id');
+                })
+                .finally(() => {
+                    setIsRestoring(false);
+                });
+        }
+    }, []);
 
     // Handle initial image selection
     const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,6 +105,7 @@ export const ChatInterface: React.FC = () => {
 
             if (response.thread_id) {
                 setThreadId(response.thread_id);
+                localStorage.setItem('chat_session_id', response.thread_id);
             }
 
             const assistantMsg: ChatMessage = {

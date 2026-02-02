@@ -7,9 +7,8 @@ from typing import Optional, List, Dict, Any
 import json
 from loguru import logger
 
-from ..services.agent_service import process_chat_message, format_conversation_for_storage
+from ..services.agent_service import process_chat_message, format_conversation_for_storage, retrieve_chat_history
 from ..response_models import ChatResponse
-
 
 router = APIRouter(tags=["chat"])
 
@@ -109,4 +108,20 @@ async def chat(
             status_code=500,
             detail=f"An error occurred while processing your message: {str(e)}"
         )
+
+
+@router.get("/api/chat/history/{thread_id}", response_model=List[Dict[str, Any]])
+async def get_chat_history(thread_id: str):
+    """
+    Retrieve the full chat history for a given thread session.
+    """
+    try:
+        if not thread_id:
+            return []
+            
+        history = await retrieve_chat_history(thread_id)
+        return history
+    except Exception as e:
+        logger.error(f"Failed to retrieve history for {thread_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve chat history")
 
