@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Send, Paperclip, X, Calculator, Bot, User } from 'lucide-react';
 import { api } from '../../services/api';
-import type { ChatMessage, ToolResult } from '../../types';
+import type { ChatMessage } from '../../types';
 import { SubmissionResult } from './ToolOutputs/SubmissionResult';
 import { LatexRenderer } from '../LatexRenderer';
 import './ChatInterface.css';
@@ -17,21 +18,39 @@ export const ChatInterface: React.FC = () => {
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [threadId, setThreadId] = useState<string | undefined>(undefined);
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+    // Auto-scroll to bottom
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages]);
+    }, [messages, isLoading]);
+
+    // Handle initial image selection
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setSelectedImage(e.target.files[0]);
+        }
+    };
+
+    // Auto-resize textarea
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+            textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+        }
+    }, [inputText]);
 
     const handleSendMessage = async (e?: React.FormEvent) => {
         e?.preventDefault();
 
-        if ((!inputText.trim() && !selectedImage) || isLoading) return;
+        if (!inputText.trim() && !selectedImage) return;
 
         const userMsg: ChatMessage = {
             id: Date.now().toString(),
@@ -45,6 +64,10 @@ export const ChatInterface: React.FC = () => {
         setInputText('');
         setSelectedImage(null);
         setIsLoading(true);
+
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+        }
 
         try {
             const response = await api.sendChatMessage(userMsg.content, userMsg.image, threadId);
@@ -74,61 +97,75 @@ export const ChatInterface: React.FC = () => {
         }
     };
 
-    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            setSelectedImage(e.target.files[0]);
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSendMessage();
         }
-    };
-
-    const renderToolResult = (result: ToolResult) => {
-        if (result.name === 'submit_solution') {
-            return <SubmissionResult key={result.name} result={result.result} />;
-        }
-        if (result.name === 'extract_problem_from_image' || result.name === 'extract_text_from_problem_image') {
-            // We could render extracted problem nicely, but text is fine for now
-            // Or maybe a small "Problem Extracted" badge
-            return null;
-        }
-        return null;
     };
 
     return (
-        <div className="chat-interface">
-            <div className="chat-messages">
-                {messages.map(msg => (
-                    <div key={msg.id} className={`message ${msg.role}`}>
-                        <div className="message-bubble">
-                            {msg.imageUrl && (
-                                <img src={msg.imageUrl} alt="Uploaded content" className="message-image" />
-                            )}
-                            <LatexRenderer text={msg.content} className="message-text" />
+        <div className="chat-container">
+            {/* Header */}
+            <header className="chat-header">
+                <div className="chat-header-icon">
+                    <Calculator size={24} />
+                </div>
+                <div className="chat-header-info">
+                    <h1>Math Tutor</h1>
+                    <p>Powered by AI</p>
+                </div>
+            </header>
 
-                            {msg.toolResults && msg.toolResults.map((toolResult, idx) => (
-                                <div key={idx}>
-                                    {renderToolResult(toolResult)}
+            {/* Messages Area */}
+            <div className="message-list">
+                {messages.map((msg) => (
+                    <div key={msg.id} className={`message-wrapper ${msg.role}`}>
+                        <div className="message-avatar">
+                            {msg.role === 'user' ? <User size={18} /> : <Bot size={18} />}
+                        </div>
+                        <div className="message-bubble">
+                            {/* Uploaded Image Preview in Stream */}
+                            {msg.imageUrl && (
+                                <img
+                                    src={msg.imageUrl}
+                                    alt="Uploaded problem"
+                                    className="message-image"
+                                />
+                            )}
+
+                            {/* Text Content */}
+                            {msg.content && <LatexRenderer text={msg.content} />}
+
+                            {/* Tool Results (Grading Cards, etc.) */}
+                            {msg.toolResults && msg.toolResults.length > 0 && (
+                                <div className="tool-results">
+                                    {msg.toolResults.map((tool, idx) => (
+                                        tool.name === 'submit_solution' && (
+                                            <div key={idx} style={{ marginTop: '1rem' }}>
+                                                <SubmissionResult result={tool.result} variant="chat" />
+                                            </div>
+                                        )
+                                    ))}
                                 </div>
-                            ))}
+                            )}
                         </div>
                     </div>
                 ))}
+
                 {isLoading && (
-                    <div className="message assistant">
-                        <div className="message-bubble typing-indicator">
-                            <span>.</span><span>.</span><span>.</span>
-                        </div>
+                    <div className="typing-indicator">
+                        <div className="typing-dot"></div>
+                        <div className="typing-dot"></div>
+                        <div className="typing-dot"></div>
                     </div>
                 )}
+
                 <div ref={messagesEndRef} />
             </div>
 
-            <form className="chat-input-area" onSubmit={handleSendMessage}>
-                <button
-                    type="button"
-                    className="attach-btn"
-                    onClick={() => fileInputRef.current?.click()}
-                >
-                    📎
-                </button>
+            {/* Input Area */}
+            <div className="input-area">
                 <input
                     type="file"
                     ref={fileInputRef}
@@ -137,24 +174,49 @@ export const ChatInterface: React.FC = () => {
                     onChange={handleImageSelect}
                 />
 
-                {selectedImage && (
-                    <div className="image-preview-badge">
-                        {selectedImage.name}
-                        <span onClick={() => setSelectedImage(null)}>×</span>
-                    </div>
-                )}
-
-                <input
-                    type="text"
-                    value={inputText}
-                    onChange={e => setInputText(e.target.value)}
-                    placeholder="Type a message..."
-                    disabled={isLoading}
-                />
-                <button type="submit" disabled={isLoading || (!inputText && !selectedImage)}>
-                    Send
+                <button
+                    className={`attach-button ${selectedImage ? 'has-file' : ''}`}
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Attach image"
+                >
+                    <Paperclip size={20} />
                 </button>
-            </form>
+
+                <div className="input-wrapper">
+                    {selectedImage && (
+                        <div className="file-preview">
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <Paperclip size={14} />
+                                {selectedImage.name}
+                            </span>
+                            <button
+                                onClick={() => setSelectedImage(null)}
+                                style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}
+                            >
+                                <X size={14} color="#ef4444" />
+                            </button>
+                        </div>
+                    )}
+
+                    <textarea
+                        ref={textareaRef}
+                        className="chat-input"
+                        placeholder="Type a message or paste a problem..."
+                        value={inputText}
+                        onChange={(e) => setInputText(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        rows={1}
+                    />
+                </div>
+
+                <button
+                    className="send-button"
+                    onClick={() => handleSendMessage()}
+                    disabled={!inputText.trim() && !selectedImage && !isLoading}
+                >
+                    <Send size={20} />
+                </button>
+            </div>
         </div>
     );
 };

@@ -123,5 +123,53 @@
     color: var(--color-text-secondary);
     overflow-x: auto;
     white-space: pre-wrap;
+
     word-wrap: break-word;
+}
+
+/* Chat Variant Styles */
+.feedback-display--chat {
+    margin-top: 0;
+    gap: 0.5rem;
+}
+
+.feedback-chat-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    background: #f3f4f6;
+    margin-bottom: 0.5rem;
+    width: fit-content;
+}
+
+.feedback-chat-header.correct {
+    background: #ecfdf5;
+    color: #065f46;
+}
+
+.feedback-chat-header.incorrect {
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.feedback-chat-icon {
+    font-size: 1.2rem;
+}
+
+.feedback-display--chat .feedback-display__feedback {
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.feedback-display--chat .feedback-step {
+    padding: 0.5rem 0;
+    font-size: 0.95rem;
+}
+
+.feedback-display--chat .feedback-display__analysis {
+    margin-bottom: 1rem;
+    color: #4b5563;
 }

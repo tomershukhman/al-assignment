@@ -4,9 +4,10 @@ import './SubmissionResult.css';
 
 interface SubmissionResultProps {
     result: any; // Raw result from tool
+    variant?: 'full' | 'chat';
 }
 
-export const SubmissionResult: React.FC<SubmissionResultProps> = ({ result }) => {
+export const SubmissionResult: React.FC<SubmissionResultProps> = ({ result, variant = 'full' }) => {
     // result is the SubmissionAnalysis object from backend/response_models.py
     // It has: is_correct, confidence, extracted_text, analysis, feedback (list)
 
@@ -31,6 +32,7 @@ export const SubmissionResult: React.FC<SubmissionResultProps> = ({ result }) =>
             <FeedbackDisplay
                 feedback={result}
                 ocrText={result.extracted_text || ''}
+                variant={variant}
             />
         </div>
     );
